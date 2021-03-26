@@ -180,17 +180,17 @@ class ReversiGame:
 
         Return None if the game is not over.
 
-        :return: winner of the game (black or white) or 'draw' if the game ended in a draw.
+        :return: winner of the game (Black or White) or 'Draw' if the game ended in a draw.
         None if the game is not over.
         """
-        if self._is_valid_move(_BLACK, 'pass') and self._is_valid_move(_WHITE, 'pass'):
+        if self._is_pass_valid(_BLACK) and self._is_pass_valid(_WHITE):
             black, white = self.get_num_pieces()
             if black > white:
-                return 'black'
+                return 'Black'
             elif black == white:
-                return 'draw'
+                return 'Draw'
             else:
-                return 'white'
+                return 'White'
         else:
             return None
 
@@ -214,7 +214,10 @@ class ReversiGame:
                 self._board[y][x] = turn
 
     def _update_valid_moves(self) -> None:
-        """Mutate self._valid_moves"""
+        """Mutate self._valid_moves
+
+        :return: None
+        """
         self._valid_moves = []
         for y in range(len(self._board)):
             for x in range(len(self._board)):
@@ -224,6 +227,18 @@ class ReversiGame:
 
         if len(self._valid_moves) == 0:  # no valid moves
             self._valid_moves.append('pass')
+
+    def _is_pass_valid(self, player: str) -> bool:
+        """Return whether 'pass' is a valid move for the given player in this game state
+
+        :param player: the player to be tested on pass move
+        """
+        for y in range(len(self._board)):
+            for x in range(len(self._board)):
+                move = _index_to_algebraic((y, x))
+                if self._is_valid_move(player, move):
+                    return False
+        return True
 
     def _is_valid_move(self, player: str, move: str) -> bool:
         """Return whether the given move is valid for the given player.
@@ -380,7 +395,7 @@ class ConsoleUserPlayer(Player):
 
 
 class RandomPlayer(Player):
-    """A Minichess AI whose strategy is always picking a random move."""
+    """A Reversi AI who always picks a random move."""
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -389,7 +404,7 @@ class RandomPlayer(Player):
         have been made.
 
         Preconditions:
-            - There is at least one valid move for the given game
+            - There is at least one valid move for the given game state
 
         :param game: the current game state
         :param previous_move: the opponent player's most recent move, or None if no moves
@@ -398,3 +413,52 @@ class RandomPlayer(Player):
         """
         possible_moves = game.get_valid_moves()
         return random.choice(possible_moves)
+
+
+def run_games(n: int, white: Player, black: Player) -> None:
+    """Run n games using the given Players.
+
+    Preconditions:
+        - n >= 1
+    """
+    stats = {'White': 0, 'Black': 0, 'Draw': 0}
+    results = []
+    for i in range(0, n):
+        white_copy = copy.deepcopy(white)
+        black_copy = copy.deepcopy(black)
+
+        winner, _ = run_game(white_copy, black_copy)
+        stats[winner] += 1
+        results.append(winner)
+
+        print(f'Game {i} winner: {winner}')
+
+    for outcome in stats:
+        print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
+
+
+def run_game(white: Player, black: Player, verbose: bool = False) -> tuple[str, list[str]]:
+    """Run a Minichess game between the two given players.
+
+    Return the winner and list of moves made in the game.
+    """
+    game = ReversiGame()
+
+    move_sequence = []
+    previous_move = None
+    current_player = white
+    while game.get_winner() is None:
+
+        previous_move = current_player.make_move(game, previous_move)
+        game.make_move(previous_move)
+        move_sequence.append(previous_move)
+
+        if current_player is white:
+            current_player = black
+        else:
+            current_player = white
+
+        if verbose:
+            game.print_game_board()
+
+    return game.get_winner(), move_sequence
