@@ -1,4 +1,4 @@
-"""Implementation of Reversi and elementary players
+"""Implementation of Reversi game
 
 Module Description
 ===============================
