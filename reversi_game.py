@@ -1,9 +1,9 @@
-"""Implementation of Reversi game
+"""ReversiGame class
 
 Module Description
 ===============================
 
-This module contains a collection of classes and functions that represents games of Reversi.
+This module contains a class that represents the game of Reversi.
 
 Copyright and Usage Information
 ===============================
@@ -342,123 +342,3 @@ def _index_to_algebraic(pos: tuple[int, int]) -> str:
     :param pos: coordinates in array indices
     """
     return _INDEX_TO_FILE[pos[1]] + _INDEX_TO_RANK[pos[0]]
-
-
-################################################################################
-# Player classes
-################################################################################
-class Player:
-    """An abstract class representing a Minichess AI.
-
-    This class can be subclassed to implement different strategies for playing chess.
-    """
-
-    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
-        """Make a move given the current game.
-
-        previous_move is the opponent player's most recent move, or None if no moves
-        have been made.
-
-        Preconditions:
-            - There is at least one valid move for the given game
-
-        :param game: the current game state
-        :param previous_move: the opponent player's most recent move, or None if no moves
-        have been made
-        :return: a move to be made
-        """
-        raise NotImplementedError
-
-
-class ConsoleUserPlayer(Player):
-    """A human player using the console as an interface"""
-
-    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
-        """Make a move given the current game by entering the move into the console.
-
-        previous_move is the opponent player's most recent move, or None if no moves
-        have been made.
-
-        Preconditions:
-            - There is at least one valid move for the given game
-
-        :param game: the current game state
-        :param previous_move: the opponent player's most recent move, or None if no moves
-        have been made
-        :return: a move to be made
-        """
-        move = input('Please enter your move here')
-        while move not in game.get_valid_moves():
-            print('Invalid move.')
-            move = input('Please enter your move here')
-        return move
-
-
-class RandomPlayer(Player):
-    """A Reversi AI who always picks a random move."""
-
-    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
-        """Make a move given the current game.
-
-        previous_move is the opponent player's most recent move, or None if no moves
-        have been made.
-
-        Preconditions:
-            - There is at least one valid move for the given game state
-
-        :param game: the current game state
-        :param previous_move: the opponent player's most recent move, or None if no moves
-        have been made
-        :return: a move to be made
-        """
-        possible_moves = game.get_valid_moves()
-        return random.choice(possible_moves)
-
-
-def run_games(n: int, white: Player, black: Player) -> None:
-    """Run n games using the given Players.
-
-    Preconditions:
-        - n >= 1
-    """
-    stats = {'White': 0, 'Black': 0, 'Draw': 0}
-    results = []
-    for i in range(0, n):
-        white_copy = copy.deepcopy(white)
-        black_copy = copy.deepcopy(black)
-
-        winner, _ = run_game(white_copy, black_copy)
-        stats[winner] += 1
-        results.append(winner)
-
-        print(f'Game {i} winner: {winner}')
-
-    for outcome in stats:
-        print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
-
-
-def run_game(white: Player, black: Player, verbose: bool = False) -> tuple[str, list[str]]:
-    """Run a Minichess game between the two given players.
-
-    Return the winner and list of moves made in the game.
-    """
-    game = ReversiGame()
-
-    move_sequence = []
-    previous_move = None
-    current_player = white
-    while game.get_winner() is None:
-
-        previous_move = current_player.make_move(game, previous_move)
-        game.make_move(previous_move)
-        move_sequence.append(previous_move)
-
-        if current_player is white:
-            current_player = black
-        else:
-            current_player = white
-
-        if verbose:
-            game.print_game_board()
-
-    return game.get_winner(), move_sequence
