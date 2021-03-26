@@ -14,17 +14,12 @@ Authors:
     - Man Chon Ho
     - Alexander Nicholas Conway
 
-This file is Copyright (c) 2020.
+This file is Copyright (c) 2021.
 """
 from __future__ import annotations
 
 import copy
-import random
-import time
 from typing import Optional
-
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 ################################################################################
 # Representing Reversi

@@ -19,12 +19,15 @@ This file is Copyright (c) 2020.
 from __future__ import annotations
 
 import copy
-import random
 import time
-from typing import Optional
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+from reversi_game import ReversiGame
+from elementary_players import Player, RandomPlayer
+
+# TODO: Implement visualization features
 
 
 def run_games(n: int, white: Player, black: Player) -> None:

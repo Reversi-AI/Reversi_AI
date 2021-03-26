@@ -3,7 +3,7 @@
 Module Description
 ===============================
 
-This module contains two class that represents a human player integrating with the console 
+This module contains two class that represents a human player integrating with the console
 and a RandomAI player making random moves in the game
 
 Copyright and Usage Information
@@ -20,6 +20,8 @@ This file is Copyright (c) 2020.
 from __future__ import annotations
 
 import random
+
+from reversi_game import ReversiGame
 
 
 class Player:
