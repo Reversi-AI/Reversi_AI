@@ -20,7 +20,7 @@ import copy
 
 from pieces import _BLACK, _WHITE
 from reversi import ReversiGame, Player, RandomPlayer
-from minimax import GreedyPlayer, PositionalPlayer
+from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 
 
 def run_games_ai(black: Player, white: Player, n: int) -> None:
@@ -80,9 +80,11 @@ def run_game_ai(black: Player, white: Player, verbose: bool = False) -> tuple[st
 
 
 if __name__ == '__main__':
-    black_player = PositionalPlayer(4)
-    white_player = GreedyPlayer(4)
+    random_player = RandomPlayer()
+    position_player = PositionalPlayer(4)
+    greedy_player = GreedyPlayer(4)
+    mobility_player = MobilityPlayer(4)
 
-    # run_games_ai(black_player, white_player, 10)
-    result = run_game_ai(black_player, white_player, True)
-    print(result)
+    run_games_ai(greedy_player, position_player, 10)
+    # result = run_game_ai(greedy_player, mobility_player, True)
+    # print(result)
