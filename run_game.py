@@ -20,7 +20,7 @@ import copy
 
 from pieces import _BLACK, _WHITE
 from reversi import ReversiGame, Player, RandomPlayer
-from minimax import GreedyPlayer
+from minimax import GreedyPlayer, PositionalPlayer
 
 
 def run_games_ai(black: Player, white: Player, n: int) -> None:
@@ -56,24 +56,33 @@ def run_game_ai(black: Player, white: Player, verbose: bool = False) -> tuple[st
     previous_move = None
     current_player = black
 
+    if verbose:
+        game.print_game()
+
     while game.get_winner() is None:
         previous_move = current_player.make_move(game, previous_move)
         game.make_move(previous_move)
         move_sequence.append(previous_move)
+
+        if verbose:
+            if current_player is black:
+                print(f'{_BLACK} moved {previous_move}')
+            else:
+                print(f'{_WHITE} moved {previous_move}')
+            game.print_game()
 
         if current_player is black:
             current_player = white
         else:
             current_player = black
 
-        if verbose:
-            game.print_game()
-
     return game.get_winner(), move_sequence
 
 
 if __name__ == '__main__':
-    black_player = GreedyPlayer(3)
-    white_player = RandomPlayer()
+    black_player = PositionalPlayer(4)
+    white_player = GreedyPlayer(4)
 
-    run_games_ai(black_player, white_player, 100)
+    # run_games_ai(black_player, white_player, 10)
+    result = run_game_ai(black_player, white_player, True)
+    print(result)
