@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="09d31771-c2a6-44cc-8d44-326dcfd79d4f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/elementary_players.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reversi_game.py" beforeDir="false" afterPath="$PROJECT_DIR$/reversi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_reversi_gameplay.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reversi.py" beforeDir="false" afterPath="$PROJECT_DIR$/reversi.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +38,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.reversi">
     <configuration name="reversi" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Reversi_AI" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -49,7 +48,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Brian Ho\Documents\GitHub\Reversi_AI\reversi.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/reversi.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -60,6 +59,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.reversi" />
         <item itemvalue="Python.reversi_oop" />
         <item itemvalue="Python.reversi_oop" />
       </list>

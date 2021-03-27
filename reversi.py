@@ -301,7 +301,8 @@ class ReversiGame:
 
         y += dy
         x += dx
-        # self._board[y][x] now is opponent's color
+        assert self._board[y][x] == opponent
+
         flips_so_far = [(y, x)]
         while self._is_on_board((y, x)) and self._board[y][x] == opponent:
             y += dy
@@ -448,3 +449,5 @@ def run_game_ai(white: AIPlayer, black: AIPlayer, verbose: bool = False) -> tupl
 if __name__ == '__main__':
     result = run_game_ai(RandomPlayer(), RandomPlayer(), True)
     print(result)
+
+    run_games_ai(100, RandomPlayer(), RandomPlayer())
