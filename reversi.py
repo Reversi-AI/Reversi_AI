@@ -4,7 +4,7 @@ Module Description
 ===============================
 
 This module is an object oriented implementation of Reversi.
-It contains a collection of classes and functions that represents the game of Reversi.
+It contains a collection of classes that represents the game of Reversi.
 
 Copyright and Usage Information
 ===============================
@@ -23,14 +23,11 @@ from typing import Optional
 import copy
 import random
 
-################################################################################
-# Representing Reversi
-################################################################################
-# representation of occupancy of a square on the board
-_EMPTY = '_'
-_BLACK = 'X'
-_WHITE = 'O'
+from pieces import _BLACK, _WHITE, _EMPTY
 
+################################################################################
+# Class representing Reversi
+################################################################################
 # mapping used for converting move between algebraic and index
 _FILE_TO_INDEX = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
 _INDEX_TO_FILE = {i: f for f, i in _FILE_TO_INDEX.items()}
@@ -44,9 +41,7 @@ class ReversiGame:
     # Private Instance Attributes:
     #   - _board: a two-dimensional nested list representing a Reversi board
     #   - _valid_moves: a list of the valid moves of the current player
-    #   - _is_black_turn: a boolean representing whether black is the current player
-    #   - _num_black_pieces: an integer representing the number of black pieces on the board
-    #   - _num_white_pieces: an integer representing the number of white pieces on the board
+    #   - _turn: a str representing which piece is going to play next
 
     # Representation Invariants:
     #   - len(self_board) == 8
@@ -193,11 +188,11 @@ class ReversiGame:
                 and self._calculate_valid_moves(_WHITE) == ['pass']:
             black, white = self.get_num_pieces()
             if black > white:
-                return 'Black'
+                return _BLACK
             elif black == white:
                 return 'Draw'
             else:
-                return 'White'
+                return _WHITE
         else:
             return None
 
@@ -349,9 +344,9 @@ def _index_to_algebraic(pos: tuple[int, int]) -> str:
 
 
 ################################################################################
-# Chess player classes
+# Player classes
 ################################################################################
-class AIPlayer:
+class Player:
     """An abstract class representing a Reversi player.
 
     This class can be subclassed to implement different strategies for playing Reversi.
@@ -373,8 +368,8 @@ class AIPlayer:
         raise NotImplementedError
 
 
-class RandomPlayer(AIPlayer):
-    """A Reversi AI who always picks a random move."""
+class RandomPlayer(Player):
+    """A Reversi AI player who always picks a random move."""
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -392,62 +387,3 @@ class RandomPlayer(AIPlayer):
         """
         possible_moves = game.get_valid_moves()
         return random.choice(possible_moves)
-
-
-################################################################################
-# Functions for running games between you ai
-################################################################################
-def run_games_ai(n: int, white: AIPlayer, black: AIPlayer) -> None:
-    """Run n games using the given Players.
-
-    Preconditions:
-        - n >= 1
-    """
-    stats = {'White': 0, 'Black': 0, 'Draw': 0}
-    results = []
-    for i in range(0, n):
-        white_copy = copy.deepcopy(white)
-        black_copy = copy.deepcopy(black)
-
-        winner, _ = run_game_ai(white_copy, black_copy)
-        stats[winner] += 1
-        results.append(winner)
-
-        print(f'Game {i} winner: {winner}')
-
-    for outcome in stats:
-        print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
-
-
-def run_game_ai(white: AIPlayer, black: AIPlayer, verbose: bool = False) -> tuple[str, list[str]]:
-    """Run a Reversi game between the two given players.
-
-    Return the winner and list of moves made in the game.
-    """
-    game = ReversiGame()
-
-    move_sequence = []
-    previous_move = None
-    current_player = white
-
-    while game.get_winner() is None:
-        previous_move = current_player.make_move(game, previous_move)
-        game.make_move(previous_move)
-        move_sequence.append(previous_move)
-
-        if current_player is white:
-            current_player = black
-        else:
-            current_player = white
-
-        if verbose:
-            game.print_game()
-
-    return game.get_winner(), move_sequence
-
-
-if __name__ == '__main__':
-    result = run_game_ai(RandomPlayer(), RandomPlayer(), True)
-    print(result)
-
-    run_games_ai(100, RandomPlayer(), RandomPlayer())
