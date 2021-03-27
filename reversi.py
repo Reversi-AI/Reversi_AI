@@ -3,7 +3,8 @@
 Module Description
 ===============================
 
-This module contains a class that represents the game of Reversi.
+This module is an object oriented implementation of Reversi.
+It contains a collection of classes and functions that represents the game of Reversi.
 
 Copyright and Usage Information
 ===============================
@@ -18,8 +19,9 @@ This file is Copyright (c) 2021.
 """
 from __future__ import annotations
 
-import copy
 from typing import Optional
+import copy
+import random
 
 ################################################################################
 # Representing Reversi
@@ -84,21 +86,14 @@ class ReversiGame:
             self._board = board
 
         self._turn = turn
-        self._update_valid_moves()
+        self._valid_moves = self._calculate_valid_moves(self._turn)
 
-    def print_game_board(self) -> None:
-        """Return a string representing the state of the board
+    def get_game_board(self) -> list[list[str]]:
+        """Return self._board
 
-        :return: None
+        :return: a 8x8 nested list representing the current board state
         """
-        print('*' * 26)
-
-        print('   ' + '  '.join([c for c in 'abcdefgh']))
-
-        for i in range(len(self._board)):
-            print(f'{i + 1}  ' + '  '.join(self._board[i]))
-
-        print('*' * 26)
+        return self._board
 
     def get_valid_moves(self) -> list[str]:
         """Return a list of the valid moves for the active player
@@ -107,12 +102,28 @@ class ReversiGame:
         """
         return self._valid_moves
 
-    def _next_player(self) -> None:
-        """Mutate self.turn to the next player"""
-        if self._turn == _BLACK:
-            self._turn = _WHITE
-        else:
-            self._turn = _BLACK
+    def get_current_player(self) -> str:
+        """Return which player is going to play next
+
+        :return: a string representing which player will play next
+        """
+        return self._turn
+
+    def print_game(self) -> None:
+        """Output the current game state on the console
+
+        :return: None
+        """
+        print('*' * 26)
+
+        print(f"{self._turn}'s turn")
+
+        print('   ' + '  '.join([c for c in 'abcdefgh']))
+
+        for i in range(len(self._board)):
+            print(f'{i + 1}  ' + '  '.join(self._board[i]))
+
+        print('*' * 26)
 
     def make_move(self, move: str) -> None:
         """Make the given move and mutate the instance attributes of self such that
@@ -131,11 +142,18 @@ class ReversiGame:
 
         self._update_board(self._turn, move)
         self._next_player()
-        self._update_valid_moves()
+        self._valid_moves = self._calculate_valid_moves(self._turn)
+
+    def _next_player(self) -> None:
+        """Mutate self.turn to the next player"""
+        if self._turn == _BLACK:
+            self._turn = _WHITE
+        else:
+            self._turn = _BLACK
 
     def simulate_move(self, move: str) -> ReversiGame:
         """Make the given move in a copy of self, and return the copy after the move is made.
-
+        This method does not mutate the current instance.
         If move is not a currently valid move, raise a ValueError.
 
         :param move: the move to be made
@@ -144,13 +162,6 @@ class ReversiGame:
         copy_state = copy.deepcopy(self)
         copy_state.make_move(move)
         return copy_state
-
-    def get_current_player(self) -> str:
-        """Return which player is going to play next
-
-        :return: a string representing which player will play next
-        """
-        return self._turn
 
     def get_num_pieces(self) -> tuple[int, int]:
         """Return the number of piece of each color on the board.
@@ -178,7 +189,8 @@ class ReversiGame:
         :return: winner of the game (Black or White) or 'Draw' if the game ended in a draw.
         None if the game is not over.
         """
-        if self._is_pass_valid(_BLACK) and self._is_pass_valid(_WHITE):
+        if self._calculate_valid_moves(_BLACK) == ['pass'] \
+                and self._calculate_valid_moves(_WHITE) == ['pass']:
             black, white = self.get_num_pieces()
             if black > white:
                 return 'Black'
@@ -197,9 +209,11 @@ class ReversiGame:
 
         """
         if move != 'pass':
+            # replace move to the active player's piece
             y_move, x_move = _algebraic_to_index(move)
             self._board[y_move][x_move] = turn
 
+            # flip all the pieces that could be flipped
             flips_so_far = []
             directions = [(0, 1), (0, -1), (1, 0), (-1, 0),
                           (1, 1), (-1, 1), (1, -1), (-1, -1)]
@@ -208,32 +222,26 @@ class ReversiGame:
             for y, x in flips_so_far:
                 self._board[y][x] = turn
 
-    def _update_valid_moves(self) -> None:
-        """Mutate self._valid_moves
+    def _calculate_valid_moves(self, turn: str) -> list[str]:
+        """Return all valid moves for the current board state for a given active player
 
+        Preconditions:
+            - turn in {_BLACK, _WHITE}
+
+        :param turn: the active player making the move
         :return: None
         """
-        self._valid_moves = []
+        valid_moves_so_far = []
         for y in range(len(self._board)):
             for x in range(len(self._board)):
                 move = _index_to_algebraic((y, x))
-                if self._is_valid_move(self._turn, move):
-                    self._valid_moves.append(move)
+                if self._is_valid_move(turn, move):
+                    valid_moves_so_far.append(move)
 
-        if len(self._valid_moves) == 0:  # no valid moves
-            self._valid_moves.append('pass')
+        if len(valid_moves_so_far) == 0:  # no valid moves
+            valid_moves_so_far.append('pass')
 
-    def _is_pass_valid(self, player: str) -> bool:
-        """Return whether 'pass' is a valid move for the given player in this game state
-
-        :param player: the player to be tested on pass move
-        """
-        for y in range(len(self._board)):
-            for x in range(len(self._board)):
-                move = _index_to_algebraic((y, x))
-                if self._is_valid_move(player, move):
-                    return False
-        return True
+        return valid_moves_so_far
 
     def _is_valid_move(self, player: str, move: str) -> bool:
         """Return whether the given move is valid for the given player.
@@ -337,3 +345,106 @@ def _index_to_algebraic(pos: tuple[int, int]) -> str:
     :param pos: coordinates in array indices
     """
     return _INDEX_TO_FILE[pos[1]] + _INDEX_TO_RANK[pos[0]]
+
+
+################################################################################
+# Chess player classes
+################################################################################
+class AIPlayer:
+    """An abstract class representing a Reversi player.
+
+    This class can be subclassed to implement different strategies for playing Reversi.
+    """
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Make a move given the current game.
+
+        previous_move is the opponent player's most recent move, or None if no moves
+        have been made.
+
+        Preconditions:
+            - There is at least one valid move for the given game
+
+        :param game: the current game state
+        :param previous_move: the opponent player's most recent move, or None if no moves
+        have been made
+        :return: a move to be made
+        """
+        raise NotImplementedError
+
+
+class RandomPlayer(AIPlayer):
+    """A Reversi AI who always picks a random move."""
+
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Make a move given the current game.
+
+        previous_move is the opponent player's most recent move, or None if no moves
+        have been made.
+
+        Preconditions:
+            - There is at least one valid move for the given game state
+
+        :param game: the current game state
+        :param previous_move: the opponent player's most recent move, or None if no moves
+        have been made
+        :return: a move to be made
+        """
+        possible_moves = game.get_valid_moves()
+        return random.choice(possible_moves)
+
+
+################################################################################
+# Functions for running games between you ai
+################################################################################
+def run_games_ai(n: int, white: AIPlayer, black: AIPlayer) -> None:
+    """Run n games using the given Players.
+
+    Preconditions:
+        - n >= 1
+    """
+    stats = {'White': 0, 'Black': 0, 'Draw': 0}
+    results = []
+    for i in range(0, n):
+        white_copy = copy.deepcopy(white)
+        black_copy = copy.deepcopy(black)
+
+        winner, _ = run_game_ai(white_copy, black_copy)
+        stats[winner] += 1
+        results.append(winner)
+
+        print(f'Game {i} winner: {winner}')
+
+    for outcome in stats:
+        print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
+
+
+def run_game_ai(white: AIPlayer, black: AIPlayer, verbose: bool = False) -> tuple[str, list[str]]:
+    """Run a Reversi game between the two given players.
+
+    Return the winner and list of moves made in the game.
+    """
+    game = ReversiGame()
+
+    move_sequence = []
+    previous_move = None
+    current_player = white
+
+    while game.get_winner() is None:
+        previous_move = current_player.make_move(game, previous_move)
+        game.make_move(previous_move)
+        move_sequence.append(previous_move)
+
+        if current_player is white:
+            current_player = black
+        else:
+            current_player = white
+
+        if verbose:
+            game.print_game()
+
+    return game.get_winner(), move_sequence
+
+
+if __name__ == '__main__':
+    result = run_game_ai(RandomPlayer(), RandomPlayer(), True)
+    print(result)
