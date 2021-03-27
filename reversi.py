@@ -42,6 +42,7 @@ class ReversiGame:
     #   - _board: a two-dimensional nested list representing a Reversi board
     #   - _valid_moves: a list of the valid moves of the current player
     #   - _turn: a str representing which piece is going to play next
+    #   - _num_pieces: a dictionary representing the number of pieces of either side
 
     # Representation Invariants:
     #   - len(self_board) == 8
@@ -51,8 +52,9 @@ class ReversiGame:
     _board: list[list[str]]
     _valid_moves: list[str]
     _turn: str
+    _num_pieces: dict[str, int]
 
-    def __init__(self, board: list[list[Optional[str]]] = None, turn: str = _BLACK) -> None:
+    def __init__(self) -> None:
         """Initialize a game with the given state. The board is empty if board is None.
 
         Representation Invariants:
@@ -61,26 +63,19 @@ class ReversiGame:
             - board is None or every element in the inner lists of _board is in
             {_EMPTY, _BLACK, _WHITE}
             - turn in {_BLACK, _WHITE}
-
-        :param board: the given board state of the game. None by default when initializing a new
-        game
-        :param turn: str representing which player should go next
-        :return: None
         """
-        if board is None:
-            # create an empty 8x8 board
-            self._board = []
-            for _ in range(8):
-                self._board.append([_EMPTY] * 8)
+        # create an empty 8x8 board
+        self._board = []
+        for _ in range(8):
+            self._board.append([_EMPTY] * 8)
 
-            # place 2 black and 2 white pieces on the center
-            self._board[3][3], self._board[3][4] = _WHITE, _BLACK
-            self._board[4][3], self._board[4][4] = _BLACK, _WHITE
+        # place 2 black and 2 white pieces on the center
+        self._board[3][3], self._board[3][4] = _WHITE, _BLACK
+        self._board[4][3], self._board[4][4] = _BLACK, _WHITE
 
-        else:
-            self._board = board
-
-        self._turn = turn
+        # update other attributes
+        self._turn = _BLACK
+        self._num_pieces = {_BLACK: 2, _WHITE: 2}
         self._valid_moves = self._calculate_valid_moves(self._turn)
 
     def get_game_board(self) -> list[list[str]]:
@@ -111,6 +106,7 @@ class ReversiGame:
         """
         print('*' * 26)
 
+        print(f'{_BLACK}: {self._num_pieces[_BLACK]}, {_WHITE}: {self._num_pieces[_WHITE]}')
         print(f"{self._turn}'s turn")
 
         print('   ' + '  '.join([c for c in 'abcdefgh']))
@@ -158,23 +154,12 @@ class ReversiGame:
         copy_state.make_move(move)
         return copy_state
 
-    def get_num_pieces(self) -> tuple[int, int]:
+    def get_num_pieces(self) -> dict[str, int]:
         """Return the number of piece of each color on the board.
 
-        :return: a tuple where the first element represents the number of black pieces
-        and the second element represents the number of white pieces
+        :return: a dictionary representing the number of pieces on each side
         """
-        black_so_far = 0
-        white_so_far = 0
-
-        for row in self._board:
-            for square in row:
-                if square == _BLACK:
-                    black_so_far += 1
-                if square == _WHITE:
-                    white_so_far += 1
-
-        return (black_so_far, white_so_far)
+        return self._num_pieces
 
     def get_winner(self) -> Optional[str]:
         """Return the winner of the game (black or white) or 'draw' if the game ended in a draw.
@@ -186,7 +171,7 @@ class ReversiGame:
         """
         if self._calculate_valid_moves(_BLACK) == ['pass'] \
                 and self._calculate_valid_moves(_WHITE) == ['pass']:
-            black, white = self.get_num_pieces()
+            black, white = self._num_pieces[_BLACK], self._num_pieces[_WHITE]
             if black > white:
                 return _BLACK
             elif black == white:
@@ -216,6 +201,15 @@ class ReversiGame:
                 flips_so_far.extend(self._check_flips(turn, move, direction))
             for y, x in flips_so_far:
                 self._board[y][x] = turn
+
+            if turn == _BLACK:
+                self._num_pieces[_BLACK] += 1  # newly placed
+                self._num_pieces[_BLACK] += len(flips_so_far)  # pieces gained from flip
+                self._num_pieces[_WHITE] -= len(flips_so_far)  # pieces lost from flip
+            else:
+                self._num_pieces[_WHITE] += 1
+                self._num_pieces[_WHITE] += len(flips_so_far)
+                self._num_pieces[_BLACK] -= len(flips_so_far)
 
     def _calculate_valid_moves(self, turn: str) -> list[str]:
         """Return all valid moves for the current board state for a given active player
@@ -294,15 +288,18 @@ class ReversiGame:
         if self._board[y + dy][x + dx] != opponent:
             return []
 
+        assert 0 <= y + dy + dy <= 7
+        assert 0 <= x + dx + dx <= 7
+
         y += dy
         x += dx
         assert self._board[y][x] == opponent
 
-        flips_so_far = [(y, x)]
+        flips_so_far = []
         while self._is_on_board((y, x)) and self._board[y][x] == opponent:
+            flips_so_far.append((y, x))
             y += dy
             x += dx
-            flips_so_far.append((y, x))
 
         if not self._is_on_board((y, x)):
             return []
