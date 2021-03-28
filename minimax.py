@@ -264,8 +264,8 @@ class PositionalPlayer(Player):
                 if num_black + num_white < 40:  # early to middle game
                     eval_so_far = 0
                     board = game.get_game_board()
-                    for i in range(8):
-                        for j in range(8):
+                    for i in range(game.get_size() - 1):
+                        for j in range(game.get_size() - 1):
                             if board[i][j] == _BLACK:
                                 eval_so_far += weights[i][j]
                             elif board[i][j] == _WHITE:
@@ -277,8 +277,8 @@ class PositionalPlayer(Player):
                 if num_black + num_white < 40:  # early to middle game
                     eval_so_far = 0
                     board = game.get_game_board()
-                    for i in range(8):
-                        for j in range(8):
+                    for i in range(game.get_size()):
+                        for j in range(game.get_size()):
                             if board[i][j] == _WHITE:
                                 eval_so_far += weights[i][j]
                             elif board[i][j] == _BLACK:
@@ -420,8 +420,8 @@ class MobilityPlayer(Player):
         """
         board = game.get_game_board()
         corner_black, corner_white = 0, 0
-        for i in [0, 7]:
-            for j in [0, 7]:
+        for i in [0, game.get_size() - 1]:
+            for j in [0, game.get_size() - 1]:
                 if board[i][j] == _BLACK:
                     corner_black += 1
                 elif board[i][j] == _WHITE:

@@ -45,7 +45,7 @@ class ReversiGame:
     #   - _num_pieces: a dictionary representing the number of pieces of either side
 
     # Representation Invariants:
-    #   - len(self_board) == 8
+    #   - len(self_board) == 8 or len(self_board) == 8
     #   - all(len(row) == 8 for row in self._board)
     #   - all elements in the inner lists of self._board is in {_EMPTY, _BLACK, _WHITE}
     #   - self._turn in {_BLACK, _WHITE}
@@ -53,30 +53,50 @@ class ReversiGame:
     _valid_moves: list[str]
     _turn: str
     _num_pieces: dict[str, int]
+    _size: int
 
-    def __init__(self) -> None:
+    def __init__(self, size: int) -> None:
         """Initialize a game with the given state. The board is empty if board is None.
 
         Representation Invariants:
-            - board is None or len(_board) == 8
+            - board is None or len(_board) == 8 or len(_board) == 6
             - board is None or all(len(row) == 8 for row in _board)
             - board is None or every element in the inner lists of _board is in
             {_EMPTY, _BLACK, _WHITE}
             - turn in {_BLACK, _WHITE}
+
+        Precondition:
+            - size in {6, 8}    # ValueError if this is not met
         """
-        # create an empty 8x8 board
+        self._size = size
         self._board = []
-        for _ in range(8):
-            self._board.append([_EMPTY] * 8)
 
-        # place 2 black and 2 white pieces on the center
-        self._board[3][3], self._board[3][4] = _WHITE, _BLACK
-        self._board[4][3], self._board[4][4] = _BLACK, _WHITE
+        if size == 8:
+            # create an empty 8x8 board
+            for _ in range(8):
+                self._board.append([_EMPTY] * 8)
 
-        # update other attributes
-        self._turn = _BLACK
-        self._num_pieces = {_BLACK: 2, _WHITE: 2}
-        self._valid_moves = self._calculate_valid_moves(self._turn)
+            # place 2 black and 2 white pieces on the center
+            self._board[3][3], self._board[3][4] = _WHITE, _BLACK
+            self._board[4][3], self._board[4][4] = _BLACK, _WHITE
+
+            # update other attributes
+            self._turn = _BLACK
+            self._num_pieces = {_BLACK: 2, _WHITE: 2}
+            self._valid_moves = self._calculate_valid_moves(self._turn)
+        elif size == 6:
+            # same implementation for the 8x8 grid, adapted for 6x6 game
+            for _ in range(6):
+                self._board.append([_EMPTY] * 6)
+
+            self._board[2][2], self._board[2][3] = _WHITE, _BLACK
+            self._board[3][2], self._board[3][3] = _BLACK, _WHITE
+
+            self._turn = _BLACK
+            self._num_pieces = {_BLACK: 2, _WHITE: 2}
+            self._valid_moves = self._calculate_valid_moves(self._turn)
+        else:
+            raise ValueError
 
     def get_game_board(self) -> list[list[str]]:
         """Return self._board
@@ -181,6 +201,10 @@ class ReversiGame:
         else:
             return None
 
+    def get_size(self) -> int:
+        """getter method for self._size"""
+        return self._size
+
     def _update_board(self, turn: str, move: str) -> None:
         """Mutate self._board after the given player made the move. Note that move can be 'pass'
 
@@ -249,6 +273,7 @@ class ReversiGame:
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0),
                       (1, 1), (-1, 1), (1, -1), (-1, -1)]
+
         for direction in directions:
             if len(self._check_flips(player, move, direction)) != 0:
                 return True
@@ -288,8 +313,8 @@ class ReversiGame:
         if self._board[y + dy][x + dx] != opponent:
             return []
 
-        assert 0 <= y + dy + dy <= 7
-        assert 0 <= x + dx + dx <= 7
+        assert 0 <= y + dy + dy <= self._size - 1
+        assert 0 <= x + dx + dx <= self._size - 1
 
         y += dy
         x += dx
@@ -313,7 +338,7 @@ class ReversiGame:
 
         :param pos: coordinates in array indices
         """
-        return 0 <= pos[0] <= 7 and 0 <= pos[1] <= 7
+        return 0 <= pos[0] <= self._size - 1 and 0 <= pos[1] <= self._size - 1
 
 
 def _algebraic_to_index(move: str) -> tuple[int, int]:

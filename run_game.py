@@ -24,7 +24,7 @@ from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 
 
-def run_games_ai(black: Player, white: Player, n: int) -> None:
+def run_games_ai(black: Player, white: Player, n: int, size: int) -> None:
     """Run n games using the given Players.
 
     Preconditions:
@@ -36,7 +36,7 @@ def run_games_ai(black: Player, white: Player, n: int) -> None:
         black_copy = copy.deepcopy(black)
         white_copy = copy.deepcopy(white)
 
-        winner, _ = run_game(black_copy, white_copy)
+        winner, _ = run_game(black_copy, white_copy, size)
         stats[winner] += 1
         results.append(winner)
 
@@ -46,12 +46,12 @@ def run_games_ai(black: Player, white: Player, n: int) -> None:
         print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
 
 
-def run_game(black: Player, white: Player, verbose: bool = False) -> tuple[str, list[str]]:
+def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
 
     Return the winner and list of moves made in the game.
     """
-    game = ReversiGame()
+    game = ReversiGame(size)
 
     move_sequence = []
     previous_move = None
@@ -81,6 +81,6 @@ def run_game(black: Player, white: Player, verbose: bool = False) -> tuple[str, 
 
 
 if __name__ == '__main__':
-    # run_games_ai(MobilityPlayer(2), PositionalPlayer(2), 100)
-    result = run_game(MobilityPlayer(6), PositionalPlayer(6), True)
-    print(result)
+    run_games_ai(PositionalPlayer(2), RandomPlayer(), 100, size=6)
+    # result = run_game(MobilityPlayer(5), PositionalPlayer(6), 6, True)
+    # print(result)
