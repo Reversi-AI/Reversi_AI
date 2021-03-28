@@ -65,7 +65,6 @@ def run_game(black: Player, white: Player, verbose: bool = False) -> tuple[str, 
 
         game.make_move(previous_move)
         move_sequence.append(previous_move)
-
         if verbose:
             if current_player is black:
                 print(f'{_BLACK} moved {previous_move}')
@@ -82,11 +81,6 @@ def run_game(black: Player, white: Player, verbose: bool = False) -> tuple[str, 
 
 
 if __name__ == '__main__':
-    random_player = RandomPlayer()
-    position_player = PositionalPlayer(4)
-    greedy_player = GreedyPlayer(4)
-    mobility_player = MobilityPlayer(4)
-
-    # run_games_ai(mobility_player(), position_player, 100)
-    result = run_game(ConsoleUserPlayer(), position_player, True)
+    # run_games_ai(MobilityPlayer(2), PositionalPlayer(2), 100)
+    result = run_game(MobilityPlayer(6), PositionalPlayer(6), True)
     print(result)

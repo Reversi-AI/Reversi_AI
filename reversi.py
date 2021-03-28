@@ -402,7 +402,7 @@ class ConsoleUserPlayer(Player):
 
         :param game: the current game state
         """
-        print(f'Valid moves are {str(game.get_valid_moves())[1: -1]}')
+        print(f'Valid moves are/is {str(game.get_valid_moves())[1: -1]}')
 
 
 class RandomPlayer(Player):
