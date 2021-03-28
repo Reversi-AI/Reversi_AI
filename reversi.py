@@ -365,6 +365,46 @@ class Player:
         raise NotImplementedError
 
 
+class ConsoleUserPlayer(Player):
+    """A human player using the console for interaction."""
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> Optional[str]:
+        """Make a move given the current game.
+
+        previous_move is the opponent player's most recent move, or None if no moves
+        have been made.
+
+        Preconditions:
+            - There is at least one valid move for the given game state
+
+        :param game: the current game state
+        :param previous_move: the opponent player's most recent move, or None if no moves
+        have been made
+        :return:
+            - 'quit' if player wants to quit the game
+            - a valid move in algebraic coordinate
+        """
+        move = None
+        while move not in game.get_valid_moves():
+            if move == 'quit':
+                return 'quit'
+            if move == 'view':
+                self._view_valid_moves(game)
+            print('Enter "quit" if you want to quit')
+            print('Enter "view" if you want to view valid moves')
+            move = input('Please enter your move')
+        return move
+
+    def _view_valid_moves(self, game: ReversiGame) -> None:
+        """Output all valid moves for the current game state in the console
+
+        Preconditions:
+            - There is at least one valid move for the given game state
+
+        :param game: the current game state
+        """
+        print(f'Valid moves are {str(game.get_valid_moves())[1: -1]}')
+
+
 class RandomPlayer(Player):
     """A Reversi AI player who always picks a random move."""
 

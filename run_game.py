@@ -17,9 +17,10 @@ Authors:
 This file is Copyright (c) 2021.
 """
 import copy
+import random
 
 from pieces import _BLACK, _WHITE
-from reversi import ReversiGame, Player, RandomPlayer
+from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 
 
@@ -35,7 +36,7 @@ def run_games_ai(black: Player, white: Player, n: int) -> None:
         black_copy = copy.deepcopy(black)
         white_copy = copy.deepcopy(white)
 
-        winner, _ = run_game_ai(black_copy, white_copy)
+        winner, _ = run_game(black_copy, white_copy)
         stats[winner] += 1
         results.append(winner)
 
@@ -45,7 +46,7 @@ def run_games_ai(black: Player, white: Player, n: int) -> None:
         print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
 
 
-def run_game_ai(black: Player, white: Player, verbose: bool = False) -> tuple[str, list[str]]:
+def run_game(black: Player, white: Player, verbose: bool = False) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
 
     Return the winner and list of moves made in the game.
@@ -61,6 +62,7 @@ def run_game_ai(black: Player, white: Player, verbose: bool = False) -> tuple[st
 
     while game.get_winner() is None:
         previous_move = current_player.make_move(game, previous_move)
+
         game.make_move(previous_move)
         move_sequence.append(previous_move)
 
@@ -85,6 +87,6 @@ if __name__ == '__main__':
     greedy_player = GreedyPlayer(4)
     mobility_player = MobilityPlayer(4)
 
-    run_games_ai(greedy_player, position_player, 10)
-    # result = run_game_ai(greedy_player, mobility_player, True)
-    # print(result)
+    # run_games_ai(mobility_player(), position_player, 100)
+    result = run_game(ConsoleUserPlayer(), position_player, True)
+    print(result)

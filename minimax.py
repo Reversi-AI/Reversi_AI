@@ -33,8 +33,8 @@ class GreedyPlayer(Player):
     #     - _depth: the depth parameter for the minimax algorithm for each decision
     _depth: int
 
-    def __init__(self, depth: int) -> None:
-        """Initialize this player.
+    def __init__(self, depth: int = 1) -> None:
+        """Initialize this player with the given depth of minimax. Default depth = 1
 
         Preconditions:
             - depth > 0
@@ -148,8 +148,8 @@ class PositionalPlayer(Player):
     #     - _depth: the depth parameter for the minimax algorithm for each decision
     _depth: int
 
-    def __init__(self, depth: int) -> None:
-        """Initialize this player.
+    def __init__(self, depth: int = 1) -> None:
+        """Initialize this player with the given depth of minimax. Default depth = 1
 
         Preconditions:
             - depth > 0
@@ -295,8 +295,8 @@ class MobilityPlayer(Player):
     #     - _depth: the depth parameter for the minimax algorithm for each decision
     _depth: int
 
-    def __init__(self, depth: int) -> None:
-        """Initialize this player.
+    def __init__(self, depth: int = 1) -> None:
+        """Initialize this player with the given minimax depth. Default depth = 1
 
         Preconditions:
             - depth > 0
