@@ -22,9 +22,19 @@ import time
 from constants import BLACK, WHITE
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
+import tkinter as tk
+from visualize import ReversiApplication
 
 
-def run_games_ai(player1: Player, player2: Player, n: int, size: int) -> None:
+def run_games_visual(player1: Player, player2: Player, n: int, size: int) -> None:
+    """Run n reversi games using the given players and show a visual"""
+    root = tk.Tk()
+    window = ReversiApplication(master=root)
+    # window.after(1000, run_games_ai(player1, player2, 1, size, window))
+    window.mainloop()
+
+
+def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None) -> None:
     """Run n games using the given Players.
 
     Preconditions:
@@ -37,7 +47,7 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int) -> None:
         if i % 2:  # p1 black, p2 white
             black_copy = copy.deepcopy(player1)
             white_copy = copy.deepcopy(player2)
-            winner, _ = run_game(black_copy, white_copy, size)
+            winner, _ = run_game(black_copy, white_copy, size, visualizer=visualizer)
             print(f'Game {i}, P1 as {BLACK}, P2 as {WHITE}, ', end='')
 
             if winner == BLACK:
@@ -69,7 +79,7 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int) -> None:
 
 
 def run_game(black: Player, white: Player, size: int,
-             verbose: bool = False) -> tuple[str, list[str]]:
+             verbose: bool = False, visualizer=None) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
 
     Return the winner and list of moves made in the game.
@@ -88,6 +98,9 @@ def run_game(black: Player, white: Player, size: int,
         t0 = time.time()  # record time before player make move
         previous_move = current_player.make_move(game, previous_move)
         t = time.time()  # record time after player make move
+
+        if visualizer is not None:
+            visualizer.draw_game_state(game, 500, 500)
 
         game.make_move(previous_move)
         move_sequence.append(previous_move)
@@ -118,4 +131,5 @@ if __name__ == '__main__':
     # run_games_ai(player1=MobilityPlayer(3),
     #              player2=PositionalPlayer(3),
     #              n=100, size=8)
-    result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
+    # result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
+    run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
