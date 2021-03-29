@@ -17,36 +17,58 @@ Authors:
 This file is Copyright (c) 2021.
 """
 import copy
-import random
 
-from pieces import _BLACK, _WHITE
+from constants import BLACK, WHITE
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 
 
-def run_games_ai(black: Player, white: Player, n: int, size: int) -> None:
+def run_games_ai(player1: Player, player2: Player, n: int, size: int) -> None:
     """Run n games using the given Players.
 
     Preconditions:
         - n >= 1
     """
-    stats = {_BLACK: 0, _WHITE: 0, 'Draw': 0}
+    stats = {'P1': 0, 'P2': 0, 'Draw': 0}
     results = []
     for i in range(0, n):
-        black_copy = copy.deepcopy(black)
-        white_copy = copy.deepcopy(white)
+        # switch black and white every turn
+        if i % 2:  # p1 black, p2 white
+            black_copy = copy.deepcopy(player1)
+            white_copy = copy.deepcopy(player2)
+            winner, _ = run_game(black_copy, white_copy, size)
+            print(f'Game {i}, P1 as {BLACK}, P2 as {WHITE}, ', end='')
 
-        winner, _ = run_game(black_copy, white_copy, size)
-        stats[winner] += 1
-        results.append(winner)
+            if winner == BLACK:
+                win_player = 'P1'
+            elif winner == WHITE:
+                win_player = 'P2'
+            else:
+                win_player = 'Draw'
 
-        print(f'Game {i} winner: {winner}')
+        else:  # p2 black, p1 white
+            black_copy = copy.deepcopy(player2)
+            white_copy = copy.deepcopy(player1)
+            winner, _ = run_game(black_copy, white_copy, size)
+            print(f'Game {i}, P1 as {WHITE}, P2 as {BLACK}, ', end='')
+
+            if winner == BLACK:
+                win_player = 'P2'
+            elif winner == WHITE:
+                win_player = 'P1'
+            else:
+                win_player = 'Draw'
+
+        stats[win_player] += 1
+        results.append(win_player)
+        print(f'Winner: {win_player}')
 
     for outcome in stats:
         print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
 
 
-def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> tuple[str, list[str]]:
+def run_game(black: Player, white: Player, size: int,
+             verbose: bool = False) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
 
     Return the winner and list of moves made in the game.
@@ -67,9 +89,9 @@ def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> 
         move_sequence.append(previous_move)
         if verbose:
             if current_player is black:
-                print(f'{_BLACK} moved {previous_move}')
+                print(f'{BLACK} moved {previous_move}')
             else:
-                print(f'{_WHITE} moved {previous_move}')
+                print(f'{WHITE} moved {previous_move}')
             game.print_game()
 
         if current_player is black:
@@ -81,6 +103,8 @@ def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> 
 
 
 if __name__ == '__main__':
-    run_games_ai(PositionalPlayer(2), RandomPlayer(), 100, size=6)
+    run_games_ai(player1=PositionalPlayer(3),
+                 player2=MobilityPlayer(3),
+                 n=100, size=6)
     # result = run_game(MobilityPlayer(5), PositionalPlayer(6), 6, True)
     # print(result)

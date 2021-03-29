@@ -22,7 +22,7 @@ from typing import Optional, Union
 import math
 import random
 
-from pieces import _BLACK, _WHITE
+from constants import BLACK, WHITE, BOARD_WEIGHT
 from reversi import ReversiGame, Player
 
 
@@ -70,7 +70,7 @@ class GreedyPlayer(Player):
 
         Preconditions:
             - depth > 0
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for running minimax
         :param piece: the player of the root
@@ -122,7 +122,7 @@ class GreedyPlayer(Player):
         the evaluation function will return the number of piece of its side
 
         Preconditions:
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for evaluation
         :return: the evaluated value of the current state
@@ -135,10 +135,10 @@ class GreedyPlayer(Player):
             else:  # lose
                 return -math.inf
         else:
-            if piece == _BLACK:
-                return game.get_num_pieces()[_BLACK] / game.get_num_pieces()[_WHITE]
+            if piece == BLACK:
+                return game.get_num_pieces()[BLACK] / game.get_num_pieces()[WHITE]
             else:
-                return game.get_num_pieces()[_WHITE] / game.get_num_pieces()[_BLACK]
+                return game.get_num_pieces()[WHITE] / game.get_num_pieces()[BLACK]
 
 
 class PositionalPlayer(Player):
@@ -185,7 +185,7 @@ class PositionalPlayer(Player):
 
         Preconditions:
             - depth > 0
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for running minimax
         :param piece: the player of the root
@@ -238,7 +238,7 @@ class PositionalPlayer(Player):
         will evaluate the positional advantage of the pieces on the board.
 
         Preconditions:
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for evaluation
         :return: value evaluated from the current game state
@@ -251,25 +251,18 @@ class PositionalPlayer(Player):
             else:  # lose
                 return -math.inf
         else:
-            num_black, num_white = game.get_num_pieces()[_BLACK], game.get_num_pieces()[_WHITE]
-            weights = [[100, -20, 10, 5,  5, 10, -20, 100],
-                       [-20, -50, -2, -2, -2, -2, -50, -20],
-                       [10, -2, -1, -1, -1, -1, -2, 10],
-                       [5, -2, -1, -1, -1, -1, -2, 5],
-                       [5, -2, -1, -1, -1, -1, -2, 5],
-                       [10, -2, -1, -1, -1, -1, -2, 10],
-                       [-20, -50, -2, -2, -2, -2, -50, -20],
-                       [100, -20, 10, 5, 5, 10, -20, 100]]
-            if piece == _BLACK:
+            num_black, num_white = game.get_num_pieces()[BLACK], game.get_num_pieces()[WHITE]
+
+            if piece == BLACK:
                 if num_black + num_white < 40:  # early to middle game
                     eval_so_far = 0
                     board = game.get_game_board()
                     for i in range(game.get_size() - 1):
                         for j in range(game.get_size() - 1):
-                            if board[i][j] == _BLACK:
-                                eval_so_far += weights[i][j]
-                            elif board[i][j] == _WHITE:
-                                eval_so_far -= weights[i][j]
+                            if board[i][j] == BLACK:
+                                eval_so_far += BOARD_WEIGHT[i][j]
+                            elif board[i][j] == WHITE:
+                                eval_so_far -= BOARD_WEIGHT[i][j]
                     return eval_so_far
                 else:  # end game
                     return num_black / num_white
@@ -279,10 +272,10 @@ class PositionalPlayer(Player):
                     board = game.get_game_board()
                     for i in range(game.get_size()):
                         for j in range(game.get_size()):
-                            if board[i][j] == _WHITE:
-                                eval_so_far += weights[i][j]
-                            elif board[i][j] == _BLACK:
-                                eval_so_far -= weights[i][j]
+                            if board[i][j] == WHITE:
+                                eval_so_far += BOARD_WEIGHT[i][j]
+                            elif board[i][j] == BLACK:
+                                eval_so_far -= BOARD_WEIGHT[i][j]
                     return eval_so_far
                 else:  # end game
                     return num_white / num_white
@@ -332,7 +325,7 @@ class MobilityPlayer(Player):
 
         Preconditions:
             - depth > 0
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for running minimax
         :param piece: the player of the root
@@ -385,7 +378,7 @@ class MobilityPlayer(Player):
         will evaluate the positional advantage of the pieces on the board.
 
         Preconditions:
-            - piece in {_BLACK, _WHITE}
+            - piece in {BLACK, WHITE}
 
         :param game: the current game state for evaluation
         :return: value evaluated from the current game state
@@ -398,16 +391,17 @@ class MobilityPlayer(Player):
             else:  # lose
                 return -math.inf
         else:
-            num_black, num_white = game.get_num_pieces()[_BLACK], game.get_num_pieces()[_WHITE]
+            num_black, num_white = game.get_num_pieces()[BLACK], game.get_num_pieces()[WHITE]
             corner_black, corner_white = self._check_corners(game)
+            board_filled = (num_black + num_white) / (game.get_size() ** 2)
 
-            if piece == _BLACK:
-                if num_black + num_white < 40:  # early to middle game
+            if piece == BLACK:
+                if board_filled < 0.70:  # early to middle game
                     return 10 * (corner_black - corner_white) + len(game.get_valid_moves())
                 else:  # end game
                     return num_black / num_white
             else:
-                if num_black + num_white < 40:  # early to middle game
+                if board_filled < 0.70:  # early to middle game
                     return 10 * (corner_white - corner_black) + len(game.get_valid_moves())
                 else:  # end game
                     return num_white / num_black
@@ -422,8 +416,8 @@ class MobilityPlayer(Player):
         corner_black, corner_white = 0, 0
         for i in [0, game.get_size() - 1]:
             for j in [0, game.get_size() - 1]:
-                if board[i][j] == _BLACK:
+                if board[i][j] == BLACK:
                     corner_black += 1
-                elif board[i][j] == _WHITE:
+                elif board[i][j] == WHITE:
                     corner_white += 1
         return corner_black, corner_white

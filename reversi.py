@@ -23,7 +23,7 @@ from typing import Optional
 import copy
 import random
 
-from pieces import _BLACK, _WHITE, _EMPTY
+from constants import BLACK, WHITE, EMPTY
 
 ################################################################################
 # Class representing Reversi
@@ -47,8 +47,8 @@ class ReversiGame:
     # Representation Invariants:
     #   - len(self_board) == 8 or len(self_board) == 8
     #   - all(len(row) == 8 for row in self._board)
-    #   - all elements in the inner lists of self._board is in {_EMPTY, _BLACK, _WHITE}
-    #   - self._turn in {_BLACK, _WHITE}
+    #   - all elements in the inner lists of self._board is in {EMPTY, BLACK, WHITE}
+    #   - self._turn in {BLACK, WHITE}
     _board: list[list[str]]
     _valid_moves: list[str]
     _turn: str
@@ -62,8 +62,8 @@ class ReversiGame:
             - board is None or len(_board) == 8 or len(_board) == 6
             - board is None or all(len(row) == 8 for row in _board)
             - board is None or every element in the inner lists of _board is in
-            {_EMPTY, _BLACK, _WHITE}
-            - turn in {_BLACK, _WHITE}
+            {EMPTY, BLACK, WHITE}
+            - turn in {BLACK, WHITE}
 
         Precondition:
             - size in {6, 8}    # ValueError if this is not met
@@ -74,7 +74,7 @@ class ReversiGame:
         if size == 8 or size == 6:
             # create an empty size * size board
             for _ in range(size):
-                self._board.append([_EMPTY] * size)
+                self._board.append([EMPTY] * size)
 
             # calculate center coordinates
             top_left_y, top_left_x = size // 2 - 1, size // 2 - 1
@@ -83,25 +83,32 @@ class ReversiGame:
             bottom_right_y, bottom_right_x = top_left_y + 1, top_left_x + 1
 
             # place 2 black and 2 white pieces on the center
-            self._board[top_left_y][top_left_x] = _WHITE
-            self._board[top_right_y][top_right_x] = _BLACK
-            self._board[bottom_left_y][bottom_left_x] = _WHITE
-            self._board[bottom_right_y][bottom_right_x] = _BLACK
+            self._board[top_left_y][top_left_x] = WHITE
+            self._board[top_right_y][top_right_x] = BLACK
+            self._board[bottom_left_y][bottom_left_x] = WHITE
+            self._board[bottom_right_y][bottom_right_x] = BLACK
 
             # update other attributes
-            self._turn = _BLACK
-            self._num_pieces = {_BLACK: 2, _WHITE: 2}
+            self._turn = BLACK
+            self._num_pieces = {BLACK: 2, WHITE: 2}
             self._valid_moves = self._calculate_valid_moves(self._turn)
 
         else:
             raise ValueError
 
     def get_game_board(self) -> list[list[str]]:
-        """Return self._board
+        """Return the nested list representing the current board state
 
-        :return: a 8x8 nested list representing the current board state
+        :return: a nested list representing the current board state
         """
         return self._board
+
+    def get_board_size(self) -> int:
+        """return the size of the board
+
+        :return: the size of the board
+        """
+        return self._size
 
     def get_valid_moves(self) -> list[str]:
         """Return a list of the valid moves for the active player
@@ -124,7 +131,7 @@ class ReversiGame:
         """
         print('*' * 26)
 
-        print(f'{_BLACK}: {self._num_pieces[_BLACK]}, {_WHITE}: {self._num_pieces[_WHITE]}')
+        print(f'{BLACK}: {self._num_pieces[BLACK]}, {WHITE}: {self._num_pieces[WHITE]}')
         print(f"{self._turn}'s turn")
 
         print('   ' + '  '.join([c for c in 'abcdefgh']))
@@ -155,10 +162,10 @@ class ReversiGame:
 
     def _next_player(self) -> None:
         """Mutate self.turn to the next player"""
-        if self._turn == _BLACK:
-            self._turn = _WHITE
+        if self._turn == BLACK:
+            self._turn = WHITE
         else:
-            self._turn = _BLACK
+            self._turn = BLACK
 
     def simulate_move(self, move: str) -> ReversiGame:
         """Make the given move in a copy of self, and return the copy after the move is made.
@@ -187,15 +194,15 @@ class ReversiGame:
         :return: winner of the game (Black or White) or 'Draw' if the game ended in a draw.
         None if the game is not over.
         """
-        if self._calculate_valid_moves(_BLACK) == ['pass'] \
-                and self._calculate_valid_moves(_WHITE) == ['pass']:
-            black, white = self._num_pieces[_BLACK], self._num_pieces[_WHITE]
-            if black > white:
-                return _BLACK
-            elif black == white:
+        if self._calculate_valid_moves(BLACK) == ['pass'] \
+                and self._calculate_valid_moves(WHITE) == ['pass']:
+            num_black, num_white = self._num_pieces[BLACK], self._num_pieces[WHITE]
+            if num_black > num_white:
+                return BLACK
+            elif num_white == num_black:
                 return 'Draw'
             else:
-                return _WHITE
+                return WHITE
         else:
             return None
 
@@ -224,20 +231,20 @@ class ReversiGame:
             for y, x in flips_so_far:
                 self._board[y][x] = turn
 
-            if turn == _BLACK:
-                self._num_pieces[_BLACK] += 1  # newly placed
-                self._num_pieces[_BLACK] += len(flips_so_far)  # pieces gained from flip
-                self._num_pieces[_WHITE] -= len(flips_so_far)  # pieces lost from flip
+            if turn == BLACK:
+                self._num_pieces[BLACK] += 1  # newly placed
+                self._num_pieces[BLACK] += len(flips_so_far)  # pieces gained from flip
+                self._num_pieces[WHITE] -= len(flips_so_far)  # pieces lost from flip
             else:
-                self._num_pieces[_WHITE] += 1
-                self._num_pieces[_WHITE] += len(flips_so_far)
-                self._num_pieces[_BLACK] -= len(flips_so_far)
+                self._num_pieces[WHITE] += 1
+                self._num_pieces[WHITE] += len(flips_so_far)
+                self._num_pieces[BLACK] -= len(flips_so_far)
 
     def _calculate_valid_moves(self, turn: str) -> list[str]:
         """Return all valid moves for the current board state for a given active player
 
         Preconditions:
-            - turn in {_BLACK, _WHITE}
+            - turn in {BLACK, WHITE}
 
         :param turn: the active player making the move
         :return: None
@@ -258,7 +265,7 @@ class ReversiGame:
         """Return whether the given move is valid for the given player.
 
          Preconditions:
-            - player in {_BLACK, _WHITE}
+            - player in {BLACK, WHITE}
             - move is a coordinate on the board
 
         :param player: the player making the move
@@ -266,7 +273,7 @@ class ReversiGame:
         :return: whether the given move is valid for the given player
         """
         y, x = _algebraic_to_index(move)
-        if self._board[y][x] != _EMPTY:
+        if self._board[y][x] != EMPTY:
             return False
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0),
@@ -283,12 +290,12 @@ class ReversiGame:
 
         direction[0] represents dy which is the proceeding direction of y.
         direction[1] represents dx which is the proceeding direction of x.
-        For example, if player = _BLACK, move = 'c4', direction =(0, 1), the function would
+        For example, if player = BLACK, move = 'c4', direction =(0, 1), the function would
         return a list of positions of white pieces that can be flipped on the right of c4
 
         Preconditions:
             - The square of move is empty
-            - player in {_BLACK, _WHITE}
+            - player in {BLACK, WHITE}
             - direction[0] in {-1, 0, 1}
             - direction[1] in {-1, 0, 1}
 
@@ -299,10 +306,10 @@ class ReversiGame:
         y, x = _algebraic_to_index(move)
         dy, dx = direction
 
-        if player == _BLACK:
-            opponent = _WHITE
+        if player == BLACK:
+            opponent = WHITE
         else:
-            opponent = _BLACK
+            opponent = BLACK
 
         if not self._is_on_board((y + dy, x + dx)):
             return []
