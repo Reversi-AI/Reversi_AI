@@ -71,30 +71,28 @@ class ReversiGame:
         self._size = size
         self._board = []
 
-        if size == 8:
-            # create an empty 8x8 board
-            for _ in range(8):
-                self._board.append([_EMPTY] * 8)
+        if size == 8 or size == 6:
+            # create an empty size * size board
+            for _ in range(size):
+                self._board.append([_EMPTY] * size)
+
+            # calculate center coordinates
+            top_left_y, top_left_x = size // 2 - 1, size // 2 - 1
+            top_right_y, top_right_x = top_left_y, top_left_x + 1
+            bottom_left_y, bottom_left_x = top_left_y + 1, top_left_x
+            bottom_right_y, bottom_right_x = top_left_y + 1, top_left_x + 1
 
             # place 2 black and 2 white pieces on the center
-            self._board[3][3], self._board[3][4] = _WHITE, _BLACK
-            self._board[4][3], self._board[4][4] = _BLACK, _WHITE
+            self._board[top_left_y][top_left_x] = _WHITE
+            self._board[top_right_y][top_right_x] = _BLACK
+            self._board[bottom_left_y][bottom_left_x] = _WHITE
+            self._board[bottom_right_y][bottom_right_x] = _BLACK
 
             # update other attributes
             self._turn = _BLACK
             self._num_pieces = {_BLACK: 2, _WHITE: 2}
             self._valid_moves = self._calculate_valid_moves(self._turn)
-        elif size == 6:
-            # same implementation for the 8x8 grid, adapted for 6x6 game
-            for _ in range(6):
-                self._board.append([_EMPTY] * 6)
 
-            self._board[2][2], self._board[2][3] = _WHITE, _BLACK
-            self._board[3][2], self._board[3][3] = _BLACK, _WHITE
-
-            self._turn = _BLACK
-            self._num_pieces = {_BLACK: 2, _WHITE: 2}
-            self._valid_moves = self._calculate_valid_moves(self._turn)
         else:
             raise ValueError
 
@@ -168,7 +166,7 @@ class ReversiGame:
         If move is not a currently valid move, raise a ValueError.
 
         :param move: the move to be made
-        :return: a copy the the game state after the move is made
+        :return: a copy of the game state after the move is made
         """
         copy_state = copy.deepcopy(self)
         copy_state.make_move(move)
