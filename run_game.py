@@ -17,6 +17,7 @@ Authors:
 This file is Copyright (c) 2021.
 """
 import copy
+import time
 
 from constants import BLACK, WHITE
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
@@ -77,34 +78,44 @@ def run_game(black: Player, white: Player, size: int,
 
     move_sequence = []
     previous_move = None
+    timer = {BLACK: 0, WHITE: 0}
     current_player = black
 
     if verbose:
         game.print_game()
 
     while game.get_winner() is None:
+        t0 = time.time()  # record time before player make move
         previous_move = current_player.make_move(game, previous_move)
+        t = time.time()  # record time after player make move
 
         game.make_move(previous_move)
         move_sequence.append(previous_move)
         if verbose:
             if current_player is black:
-                print(f'{BLACK} moved {previous_move}')
+                print(f'{BLACK} moved {previous_move}. Used {t - t0:.2f}s')
             else:
-                print(f'{WHITE} moved {previous_move}')
+                print(f'{WHITE} moved {previous_move}. Used {t - t0:.2f}s')
             game.print_game()
 
         if current_player is black:
+            timer[BLACK] += t - t0
             current_player = white
         else:
+            timer[WHITE] += t - t0
             current_player = black
+
+    # print winner
+    if verbose:
+        print(f'Winner: {game.get_winner()}')
+        print(f'{BLACK}: {game.get_num_pieces()[BLACK]}, {WHITE}: {game.get_num_pieces()[WHITE]}')
+        print(f'{BLACK} used {timer[BLACK]:.2f}s, {WHITE} used {timer[WHITE]:.2f}s')
 
     return game.get_winner(), move_sequence
 
 
 if __name__ == '__main__':
-    run_games_ai(player1=PositionalPlayer(3),
-                 player2=MobilityPlayer(3),
-                 n=10, size=8)
-    # result = run_game(MobilityPlayer(5), PositionalPlayer(6), 6, True)
-    # print(result)
+    # run_games_ai(player1=MobilityPlayer(3),
+    #              player2=PositionalPlayer(3),
+    #              n=100, size=8)
+    result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
