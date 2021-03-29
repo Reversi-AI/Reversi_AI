@@ -22,7 +22,7 @@ from typing import Optional, Union
 import math
 import random
 
-from constants import BLACK, WHITE, BOARD_WEIGHT
+from constants import BLACK, WHITE, BOARD_WEIGHT_8, BOARD_WEIGHT_6
 from reversi import ReversiGame, Player
 
 
@@ -252,30 +252,35 @@ class PositionalPlayer(Player):
                 return -math.inf
         else:
             num_black, num_white = game.get_num_pieces()[BLACK], game.get_num_pieces()[WHITE]
+            board_filled = (num_black + num_white) / (game.get_size() ** 2)
+            if game.get_size() == 8:
+                selected_board_weight = BOARD_WEIGHT_8
+            else:
+                selected_board_weight = BOARD_WEIGHT_6
 
             if piece == BLACK:
-                if num_black + num_white < 40:  # early to middle game
+                if board_filled < 0.80:  # early to middle game
                     eval_so_far = 0
                     board = game.get_game_board()
                     for i in range(game.get_size() - 1):
                         for j in range(game.get_size() - 1):
                             if board[i][j] == BLACK:
-                                eval_so_far += BOARD_WEIGHT[i][j]
+                                eval_so_far += selected_board_weight[i][j]
                             elif board[i][j] == WHITE:
-                                eval_so_far -= BOARD_WEIGHT[i][j]
+                                eval_so_far -= selected_board_weight[i][j]
                     return eval_so_far
                 else:  # end game
                     return num_black / num_white
             else:
-                if num_black + num_white < 40:  # early to middle game
+                if board_filled < 0.80:  # early to middle game
                     eval_so_far = 0
                     board = game.get_game_board()
                     for i in range(game.get_size()):
                         for j in range(game.get_size()):
                             if board[i][j] == WHITE:
-                                eval_so_far += BOARD_WEIGHT[i][j]
+                                eval_so_far += selected_board_weight[i][j]
                             elif board[i][j] == BLACK:
-                                eval_so_far -= BOARD_WEIGHT[i][j]
+                                eval_so_far -= selected_board_weight[i][j]
                     return eval_so_far
                 else:  # end game
                     return num_white / num_white
@@ -396,12 +401,12 @@ class MobilityPlayer(Player):
             board_filled = (num_black + num_white) / (game.get_size() ** 2)
 
             if piece == BLACK:
-                if board_filled < 0.70:  # early to middle game
+                if board_filled < 0.80:  # early to middle game
                     return 10 * (corner_black - corner_white) + len(game.get_valid_moves())
                 else:  # end game
                     return num_black / num_white
             else:
-                if board_filled < 0.70:  # early to middle game
+                if board_filled < 0.80:  # early to middle game
                     return 10 * (corner_white - corner_black) + len(game.get_valid_moves())
                 else:  # end game
                     return num_white / num_black

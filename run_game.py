@@ -105,6 +105,6 @@ def run_game(black: Player, white: Player, size: int,
 if __name__ == '__main__':
     run_games_ai(player1=PositionalPlayer(3),
                  player2=MobilityPlayer(3),
-                 n=100, size=6)
+                 n=10, size=8)
     # result = run_game(MobilityPlayer(5), PositionalPlayer(6), 6, True)
     # print(result)
