@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="09d31771-c2a6-44cc-8d44-326dcfd79d4f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/minimax.py" beforeDir="false" afterPath="$PROJECT_DIR$/minimax.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_game.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_game.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -41,7 +39,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
-  <component name="RunManager" selected="Python.minimax">
+  <component name="RunManager" selected="Python.run_game">
     <configuration name="minimax" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Reversi_AI" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -101,11 +99,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.run_game" />
         <item itemvalue="Python.minimax" />
         <item itemvalue="Python.run_game" />
         <item itemvalue="Python.run_game" />
         <item itemvalue="Python.run_game" />
-        <item itemvalue="Python.reversi" />
       </list>
     </recent_temporary>
   </component>
