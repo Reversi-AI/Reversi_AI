@@ -85,8 +85,8 @@ class ReversiGame:
             # place 2 black and 2 white pieces on the center
             self._board[top_left_y][top_left_x] = WHITE
             self._board[top_right_y][top_right_x] = BLACK
-            self._board[bottom_left_y][bottom_left_x] = WHITE
-            self._board[bottom_right_y][bottom_right_x] = BLACK
+            self._board[bottom_left_y][bottom_left_x] = BLACK
+            self._board[bottom_right_y][bottom_right_x] = WHITE
 
             # update other attributes
             self._turn = BLACK
