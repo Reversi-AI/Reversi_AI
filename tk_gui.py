@@ -17,8 +17,9 @@ class ReversiGUI:
         self.frame = tk.Frame(parent)
         self.board = tk.Canvas(height=500, width=500, bg='black')
         self.frame.pack()
-        self.clicked = tk.BooleanVar()
+        self.click_wanted = tk.BooleanVar()
         self.board.bind('<Button-1>', self.click)
+        self.click_move = ''
 
         # initialize game
         self.game = ReversiGame(size)
@@ -37,16 +38,26 @@ class ReversiGUI:
             if previous_move != 'mouse_pos':
                 self.game.make_move(previous_move)
                 self.draw_game_state()
-                time.sleep(1)
-                root.update()
+                # time.sleep(1)
+                self.root.update()
             else:
-                root.wait_variable(self.clicked)
-                self.clicked.set(not self.clicked.get())
+                previous_move = self.gui_move()
 
             if current_player is black:
                 current_player = white
             else:
                 current_player = black
+
+        print(self.game.get_winner())
+
+    def gui_move(self) -> str:
+        """Makes a move for the gui player"""
+        if all(len(m) != 2 for m in self.game.get_valid_moves()):
+            return 'pass'
+        else:
+            self.click_wanted.set(True)
+            self.root.wait_variable(self.click_wanted)
+            return self.click_move
 
     def draw_game_state(self, h=500, w=500) -> None:
         """Visualize the game by drawing in the window"""
@@ -77,18 +88,20 @@ class ReversiGUI:
     def click(self, event) -> None:
         """Called when mouse is clicked on the given canvas
         Finds the relative position of the click and excecutes a move"""
-        xcor = event.x // (self.board.winfo_width() / 8)
-        ycor = event.y // (self.board.winfo_height() / 8)
+        if self.click_wanted.get():
+            xcor = event.x // (self.board.winfo_width() / 8)
+            ycor = event.y // (self.board.winfo_height() / 8)
 
-        pos = (ycor, xcor)
-        move = _index_to_algebraic(pos)
-        print(move)
-        if move in self.game.get_valid_moves():
-            self.game.make_move(move)
-            self.draw_game_state()
-            root.update()
-            self.clicked.set(not self.clicked.get())
-            return
+            pos = (ycor, xcor)
+            move = _index_to_algebraic(pos)
+            print(move)
+            if move in self.game.get_valid_moves():
+                self.game.make_move(move)
+                self.click_move = move
+                self.draw_game_state()
+                self.root.update()
+                self.click_wanted.set(False)
+                return
 
 
 if __name__ == '__main__':
@@ -96,7 +109,6 @@ if __name__ == '__main__':
     root.geometry('500x500')
     gui = ReversiGUI(root, 8)
     # gui.run_game(RandomPlayer(), RandomPlayer())
-    # gui.run_game_human(RandomPlayer(), RandomPlayer())
-    gui.run_game(GUIPlayer(), GUIPlayer())
+    # gui.run_game(GUIPlayer(), RandomPlayer())
     root.deiconify()
     root.mainloop()
