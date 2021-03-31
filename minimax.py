@@ -5,7 +5,7 @@ Module Description
 
 This module contains a collection of classes representing AI Reversi players
 using the minimax algorithm to make their decision. The strategy of each player
- is represented by the evaluation function of the minimax algorithm
+is represented by the evaluation function of the minimax algorithm
 
 Copyright and Usage Information
 ===============================

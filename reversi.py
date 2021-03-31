@@ -29,10 +29,10 @@ from constants import BLACK, WHITE, EMPTY
 # Class representing Reversi
 ################################################################################
 # mapping used for converting move between algebraic and index
-_FILE_TO_INDEX = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-_INDEX_TO_FILE = {i: f for f, i in _FILE_TO_INDEX.items()}
-_RANK_TO_INDEX = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7}
-_INDEX_TO_RANK = {i: r for r, i in _RANK_TO_INDEX.items()}
+_COL_TO_INDEX = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+_INDEX_TO_COL = {i: f for f, i in _COL_TO_INDEX.items()}
+_ROW_TO_INDEX = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7}
+_INDEX_TO_ROW = {i: r for r, i in _ROW_TO_INDEX.items()}
 
 
 class ReversiGame:
@@ -364,24 +364,24 @@ def _algebraic_to_index(move: str) -> tuple[int, int]:
     """Convert coordinates in algebraic format ex. 'a2' to array indices (y, x).
 
     Preconditions:
-        - move[0] in _FILE_TO_INDEX
-        - move[1] in _RANK_TO_INDEX
+        - move[0] in _COL_TO_INDEX
+        - move[1] in _ROW_TO_INDEX
 
     :param move: coordinates in algebraic format
     """
-    return (_RANK_TO_INDEX[move[1]], _FILE_TO_INDEX[move[0]])
+    return (_ROW_TO_INDEX[move[1]], _COL_TO_INDEX[move[0]])
 
 
 def _index_to_algebraic(pos: tuple[int, int]) -> str:
     """Convert coordinates in array indices (y, x) to algebraic format.
 
     Preconditions:
-        - pos[0] in _FILE_TO_INDEX
-        - pos[1] in _RANK_TO_INDEX
+        - pos[0] in _COL_TO_INDEX
+        - pos[1] in _ROW_TO_INDEX
 
     :param pos: coordinates in array indices
     """
-    return _INDEX_TO_FILE[pos[1]] + _INDEX_TO_RANK[pos[0]]
+    return _INDEX_TO_COL[pos[1]] + _INDEX_TO_ROW[pos[0]]
 
 
 ################################################################################
