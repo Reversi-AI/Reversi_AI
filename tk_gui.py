@@ -1,7 +1,7 @@
 import tkinter as tk
 import time
 
-from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic
+from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
 from constants import BLACK, WHITE
 from typing import Optional
 
@@ -22,12 +22,6 @@ class ReversiGUI:
 
         # initialize game
         self.game = ReversiGame(size)
-        # self.player1 = player1
-        # self.player2 = player2
-        self.draw_game_state()
-
-        # run game
-        # self.run_game(self.player1, self.player2)
 
     def run_game(self, black, white) -> None:
         """Run a Reversi game between the two given players.
@@ -46,7 +40,6 @@ class ReversiGUI:
                 time.sleep(1)
                 root.update()
             else:
-                # self.game.make_move(self.mouse_input_move())
                 root.wait_variable(self.clicked)
                 self.clicked.set(not self.clicked.get())
 
@@ -55,36 +48,8 @@ class ReversiGUI:
             else:
                 current_player = black
 
-    def run_game_human(self, black, white) -> None:
-        """Run a Reversi game between the two given players.
-
-        Return the winner and list of moves made in the game.
-        """
-        previous_move = None
-        current_player = black
-        self.draw_game_state()
-
-        while self.game.get_winner() is None:
-
-            # previous_move = current_player.make_move(self.game, previous_move)
-            root.wait_variable(self.clicked)
-
-            # self.draw_game_state()
-            # time.sleep(1)
-            # root.update()
-
-            if current_player is black:
-                current_player = white
-            else:
-                current_player = black
-
-    # def mouse_input_move(self) -> None:
-    #     """Return a move based on where the user clicks on the UI"""
-    #     root.wait_variable(self.click_move)
-    #     return self.click_move
-
     def draw_game_state(self, h=500, w=500) -> None:
-        """Visualize the game by drawing on the Canvas"""
+        """Visualize the game by drawing in the window"""
 
         lst = self.game.get_game_board()
 
@@ -110,7 +75,8 @@ class ReversiGUI:
         self.board.pack()
 
     def click(self, event) -> None:
-        """Called when mouse is clicked on the given canvas"""
+        """Called when mouse is clicked on the given canvas
+        Finds the relative position of the click and excecutes a move"""
         xcor = event.x // (self.board.winfo_width() / 8)
         ycor = event.y // (self.board.winfo_height() / 8)
 
@@ -125,13 +91,12 @@ class ReversiGUI:
             return
 
 
-from reversi import GUIPlayer
 if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('500x500')
     gui = ReversiGUI(root, 8)
     # gui.run_game(RandomPlayer(), RandomPlayer())
     # gui.run_game_human(RandomPlayer(), RandomPlayer())
-    gui.run_game(RandomPlayer(), GUIPlayer())
+    gui.run_game(GUIPlayer(), GUIPlayer())
     root.deiconify()
     root.mainloop()
