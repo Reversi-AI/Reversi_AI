@@ -1,4 +1,4 @@
-"""Greedy minimax player
+"""Minimax players
 
 Module Description
 ===============================
