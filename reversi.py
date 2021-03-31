@@ -472,3 +472,13 @@ class RandomPlayer(Player):
         """
         possible_moves = game.get_valid_moves()
         return random.choice(possible_moves)
+
+# import random
+#
+#
+class GUIPlayer(Player):
+
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Makes a move based on users click position on the board"""
+
+        return 'mouse_pos'
