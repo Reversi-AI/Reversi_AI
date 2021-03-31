@@ -134,7 +134,11 @@ class ReversiGame:
         print(f'{BLACK}: {self._num_pieces[BLACK]}, {WHITE}: {self._num_pieces[WHITE]}')
         print(f"{self._turn}'s turn")
 
-        print('   ' + '  '.join([c for c in 'abcdefgh']))
+        if self._size == 8:
+            header = 'abcdefgh'
+        else:
+            header = 'abcdef'
+        print('   ' + '  '.join([c for c in header]))
 
         for i in range(len(self._board)):
             print(f'{i + 1}  ' + '  '.join(self._board[i]))
