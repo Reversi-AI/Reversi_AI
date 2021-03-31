@@ -218,7 +218,7 @@ class ReversiGame:
 
         """
         if move != 'pass':
-            # replace move to the active player's piece
+            # replace move position to the active player's piece
             y_move, x_move = _algebraic_to_index(move)
             self._board[y_move][x_move] = turn
 
@@ -231,6 +231,7 @@ class ReversiGame:
             for y, x in flips_so_far:
                 self._board[y][x] = turn
 
+            # update num pieces attribute
             if turn == BLACK:
                 self._num_pieces[BLACK] += 1  # newly placed
                 self._num_pieces[BLACK] += len(flips_so_far)  # pieces gained from flip
@@ -250,12 +251,15 @@ class ReversiGame:
         :return: None
         """
         valid_moves_so_far = []
+
+        # check every position for valid move
         for y in range(len(self._board)):
             for x in range(len(self._board)):
                 move = _index_to_algebraic((y, x))
                 if self._is_valid_move(turn, move):
                     valid_moves_so_far.append(move)
 
+        # valid move is only pass when no valid moves
         if len(valid_moves_so_far) == 0:  # no valid moves
             valid_moves_so_far.append('pass')
 
@@ -272,16 +276,22 @@ class ReversiGame:
         :param move: the move being made
         :return: whether the given move is valid for the given player
         """
+        # turn algebraic coordinate to array index
         y, x = _algebraic_to_index(move)
+
+        # when that position is occupied, the move is invalid
         if self._board[y][x] != EMPTY:
             return False
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0),
                       (1, 1), (-1, 1), (1, -1), (-1, -1)]
 
+        # check all directions, if there is a flip, it is a valid move
         for direction in directions:
             if len(self._check_flips(player, move, direction)) != 0:
                 return True
+
+        # no flips if the function reaches this point, so the move is invalid
         return False
 
     def _check_flips(self, player: str, move: str, direction: tuple) -> list[tuple[int, int]]:
@@ -303,19 +313,22 @@ class ReversiGame:
         :param move: the move begin played
         :param direction: the direction to be checked for flips
         """
+        # process input
         y, x = _algebraic_to_index(move)
         dy, dx = direction
 
+        # identify player pieces and opponent pieces
         if player == BLACK:
             opponent = WHITE
         else:
             opponent = BLACK
 
-        if not self._is_on_board((y + dy, x + dx)):
+        # check for special cases
+        if not self._is_on_board((y + dy, x + dx)):  # reach boarder in one step
             return []
-        if not self._is_on_board((y + dy + dy, x + dx + dx)):
+        if not self._is_on_board((y + dy + dy, x + dx + dx)):  # reach boarder in two steps
             return []
-        if self._board[y + dy][x + dx] != opponent:
+        if self._board[y + dy][x + dx] != opponent:  # adjacent to player pieces in that direction
             return []
 
         assert 0 <= y + dy + dy <= self._size - 1
@@ -331,6 +344,7 @@ class ReversiGame:
             y += dy
             x += dx
 
+        # determine what terminates the loop
         if not self._is_on_board((y, x)):
             return []
         elif self._board[y][x] == player:
