@@ -22,7 +22,7 @@ import time
 from constants import BLACK, WHITE
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
-from mcts import MCTSPlayer
+from mcts import MCTSPlayer, MCTSTimerPlayer
 import tkinter as tk
 from visualize import ReversiApplication
 
@@ -138,5 +138,4 @@ if __name__ == '__main__':
     # test for run_games_visual
     # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
     # test for MCTSPlayer
-    mcts_player = MCTSPlayer(game_size=8, n=1000)
-    run_game(PositionalPlayer(4), mcts_player, 8, True)
+    run_game(PositionalPlayer(4), MCTSTimerPlayer(8, 3), 8, True)

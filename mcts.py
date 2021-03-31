@@ -22,6 +22,7 @@ import copy
 import random
 import math
 import pickle
+import time
 
 from constants import BLACK, WHITE, START_MOVE
 from reversi import ReversiGame, Player
@@ -239,7 +240,7 @@ class MCTSPlayer(Player):
     _n: int
 
     def __init__(self, game_size: int, n: int, c: Union[float, int] = math.sqrt(2)) -> None:
-        """Initialize this player with the given MCTSTree and exploration parameter"""
+        """Initialize this player with the round of MCTS per move and exploration parameter"""
         self._tree = MCTSTree(START_MOVE, ReversiGame(game_size))
         self._n = n
         self._c = c
@@ -269,6 +270,61 @@ class MCTSPlayer(Player):
             self._tree = self._tree.find_subtree_by_move(previous_move)
 
         for _ in range(self._n):
+            self._tree.mcts_round(self._c)
+
+        # update tree with the decided move
+        move = self._tree.get_most_confident_move()
+        self._tree = self._tree.find_subtree_by_move(move)
+        return move
+
+
+class MCTSTimerPlayer(Player):
+    """A Reversi AI player who makes decisions with MCTS with limited time"""
+    # Private Instance Attributes:
+    #     - _tree: The decision tree for this player to make its moves
+    #     - _c: The exploration parameter for the MCTS algorithm
+    #     - _n: The number of round of MCTS performed on each move
+    _tree: MCTSTree
+    _c: Union[float, int]
+    _time_limit: int
+
+    def __init__(self, game_size: int, time_limit: int,
+                 c: Union[float, int] = math.sqrt(2)) -> None:
+        """Initialize this player with the time limit per move and exploration parameter
+
+        :param time_limit: time limit per move in seconds
+        :param c: exploration parameter
+        """
+        self._tree = MCTSTree(START_MOVE, ReversiGame(game_size))
+        self._time_limit = time_limit
+        self._c = c
+        self._tree.expand()
+
+    def set_tree(self, tree: MCTSTree) -> None:
+        """Set self._tree to a given tree"""
+        self._tree = tree
+
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Make a move given the current game.
+
+        previous_move is the opponent player's most recent move, or None if no moves
+        have been made.
+
+        Preconditions:
+            - There is at least one valid move for the given game state
+            - len(game.get_valid_moves) > 0
+
+        :param game: the current game state
+        :param previous_move: the opponent player's most recent move, or None if no moves
+        have been made
+        :return: a move to be made
+        """
+        # update tree with previous move
+        if previous_move is not None:
+            self._tree = self._tree.find_subtree_by_move(previous_move)
+
+        time_start = time.time()
+        while time.time() - time_start < self._time_limit:
             self._tree.mcts_round(self._c)
 
         # update tree with the decided move
