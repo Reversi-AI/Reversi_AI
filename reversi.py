@@ -472,3 +472,32 @@ class RandomPlayer(Player):
         """
         possible_moves = game.get_valid_moves()
         return random.choice(possible_moves)
+
+from tkinter import Canvas
+class GUIPlayer(Player):
+
+    def __init__(self, board : Canvas, size : int) -> None:
+        self.board = board
+        self.size = size
+        self.click_pos = (-1,-1)
+
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Makes a move based on users click position on the board"""
+        self.board.bind('<Button-1>', self.click)
+
+        move = None
+
+        while move not in game.get_valid_moves():
+            if self.click_pos[0] > -1:
+                move = _index_to_algebraic(self.click_pos)
+                self.board.update()
+
+        return move
+
+    def click(self, event) -> None:
+        """Called when mouse is clicked on the given canvas"""
+        xcor = event.x // (self.board.winfo_width() / self.size)
+        ycor = event.y // (self.board.winfo_height() / self.size)
+
+        pos = (xcor, ycor)
+        self.click_pos = pos
