@@ -21,6 +21,7 @@ from typing import Optional, Union
 import copy
 import random
 import math
+import pickle
 
 from constants import BLACK, WHITE, START_MOVE
 from reversi import ReversiGame, Player
@@ -207,6 +208,26 @@ class MCTSTree:
             return s
 
 
+def export_tree(tree: MCTSTree, path: str) -> None:
+    """Export the given tree to an external writable file
+
+    :param tree: the tree to be saved
+    :param path: the path to the export file
+    """
+    with open(path, 'wb') as f:
+        pickle.dump(tree, f)
+
+
+def load_tree(path: str) -> MCTSTree:
+    """Load the given byte encoded file to a MCTSTree object
+
+    :param path: the path to the loaded file
+    """
+    with open(path, 'rb') as f:
+        tree = pickle.load(f)
+    return tree
+
+
 class MCTSPlayer(Player):
     """A Reversi AI player who makes decisions with MCTS"""
     # Private Instance Attributes:
@@ -223,6 +244,10 @@ class MCTSPlayer(Player):
         self._n = n
         self._c = c
         self._tree.expand()
+
+    def set_tree(self, tree: MCTSTree) -> None:
+        """Set self._tree to a given tree"""
+        self._tree = tree
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
