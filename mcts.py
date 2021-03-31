@@ -286,9 +286,9 @@ class MCTSTimerPlayer(Player):
     #     - _n: The number of round of MCTS performed on each move
     _tree: MCTSTree
     _c: Union[float, int]
-    _time_limit: int
+    _time_limit: Union[int, float]
 
-    def __init__(self, game_size: int, time_limit: int,
+    def __init__(self, game_size: int, time_limit: Union[int, float],
                  c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 

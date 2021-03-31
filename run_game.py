@@ -138,4 +138,4 @@ if __name__ == '__main__':
     # test for run_games_visual
     # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
     # test for MCTSPlayer
-    run_game(PositionalPlayer(4), MCTSTimerPlayer(8, 3), 8, True)
+    run_game(PositionalPlayer(4), MCTSTimerPlayer(8, 1), 8, True)
