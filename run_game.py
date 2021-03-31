@@ -19,9 +19,10 @@ This file is Copyright (c) 2021.
 import copy
 import time
 
-from constants import BLACK, WHITE
+from constants import BLACK, WHITE, START_MOVE
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
+from mcts import MCTSTree, MCTSPlayer
 import tkinter as tk
 from visualize import ReversiApplication
 
@@ -128,8 +129,15 @@ def run_game(black: Player, white: Player, size: int,
 
 
 if __name__ == '__main__':
+    # test for run_games_ai
     # run_games_ai(player1=MobilityPlayer(3),
     #              player2=PositionalPlayer(3),
     #              n=100, size=8)
+    # test for run_game
     # result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
-    run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
+    # test for run_games_visual
+    # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
+    # test for MCTSPlayer
+    game_tree = MCTSTree(START_MOVE, ReversiGame(6))
+    mcts_player = MCTSPlayer(game_size=6, n=1000)
+    run_game(PositionalPlayer(4), mcts_player, 6, True)

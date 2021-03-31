@@ -39,3 +39,6 @@ BOARD_WEIGHT_6 = [[100, -20, 10, 10, -20, 100],
                   [10, -2, -1, -1, -2, -10],
                   [-20, -50, -2, -2, -50, -20],
                   [100, -20, 10, 10, -20, 100]]
+
+# representation of the initial states of the game in game_tree
+START_MOVE = '*'
