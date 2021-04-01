@@ -205,11 +205,11 @@ class MCTSTree:
         The indentation level is specified by the <depth> parameter.
         """
         if self._game_after_move.get_current_player() == BLACK:
-            turn_desc = f"{BLACK}'s move"
+            turn_display = f"{BLACK}'s move"
         else:
-            turn_desc = f"{WHITE}'s move"
-        move_desc = f'{self.move} -> {turn_desc} {self.simulations}\n'
-        s = '  ' * depth + move_desc
+            turn_display = f"{WHITE}'s move"
+        move_display = f'{self.move} -> {turn_display} {self.simulations}\n'
+        s = '  ' * depth + move_display
         if self._subtrees == []:
             return s
         else:
@@ -355,3 +355,95 @@ class MCTSTimerPlayer(Player):
         move = self._tree.get_most_confident_move()
         self._tree = self._tree.find_subtree_by_move(move)
         return move
+
+
+class MCTSTimeSavingPlayer(Player):
+    """A Reversi AI player who makes decisions with MCTS. The decision time is based
+    on the number of valid moves. The calculation for decision time is
+    t = min(t_0^(num_valid_moves) - b, time_limit) where t_0, b is a given constant
+
+    Instance Attributes:
+        - time_limit: the time limit for each move
+        - time_decision_constant: the time decision constant for each move
+    """
+    time_limit: Union[int, float]
+    time_decision_base: Union[int, float]
+    time_decision_intercept: Union[int, float]
+
+    # Private Instance Attributes:
+    #     - _tree: The decision tree for this player to make its moves
+    #     - _c: The exploration parameter for the MCTS algorithm
+    #     - _time_limit: The time limit for each move
+    _tree: Optional[MCTSTree]
+    _c: Union[float, int]
+
+    def __init__(self, time_limit: Union[int, float],
+                 time_decision_base: Union[int, float] = 1.3,
+                 time_decision_intercept: Union[int, float] = 0,
+                 tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2)) -> None:
+        """Initialize this player with the time limit per move and exploration parameter
+
+        Preconditions:
+            - time_decision_base > 1.0
+            - time_decision_intercept < time_decision_base
+
+        :param time_limit: time limit per move in seconds
+        :param tree: the MCTSTree used for making decisions
+        :param c: exploration parameter
+        """
+        if time_decision_base <= 1 or time_decision_intercept >= time_decision_base:
+            raise ValueError
+
+        self.time_limit = time_limit
+        self.time_decision_base = time_decision_base
+        self.time_decision_intercept = time_decision_intercept
+        self._tree = tree
+        self._c = c
+
+    def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
+        """Make a move given the current game.
+
+        previous_move is the opponent player's most recent move, or None if no moves
+        have been made.
+
+        Preconditions:
+            - There is at least one valid move for the given game state
+            - len(game.get_valid_moves) > 0
+
+        :param game: the current game state
+        :param previous_move: the opponent player's most recent move, or None if no moves
+        have been made
+        :return: a move to be made
+        """
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, game)
+            else:
+                self._tree = MCTSTree(previous_move, game)
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
+            self._tree = self._tree.find_subtree_by_move(previous_move)
+
+        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
+        decision_time = self.decision_time(game, self.time_decision_base,
+                                           self.time_decision_intercept)
+        time_start = time.time()
+        while time.time() - time_start < decision_time:
+            self._tree.mcts_round(self._c)
+
+        # update tree with the decided move
+        move = self._tree.get_most_confident_move()
+        self._tree = self._tree.find_subtree_by_move(move)
+        return move
+
+    def decision_time(self, game: ReversiGame, t0: Union[int, float], b: Union[int, float]) -> float:
+        """Return the decision time based on the given game state. The given time constant
+        should be greater than 1. Raise ValueError if time_constant <= 1
+        """
+        assert len(game.get_valid_moves()) >= 1
+
+        if t0 > 1 and t0 > b:
+            return min(t0 ** len(game.get_valid_moves()), self.time_limit)
+        raise ValueError
