@@ -24,7 +24,7 @@ class ReversiGUI:
         # initialize game
         self.game = ReversiGame(size)
 
-    def run_game(self, black, white) -> None:
+    def run_game(self, black, white, fps : int) -> None:
         """Run a Reversi game between the two given players.
 
         Return the winner and list of moves made in the game.
@@ -38,7 +38,7 @@ class ReversiGUI:
             if previous_move != 'mouse_pos':
                 self.game.make_move(previous_move)
                 self.draw_game_state()
-                # time.sleep(1)
+                time.sleep(1 / fps)
                 self.root.update()
             else:
                 previous_move = self.gui_move()
