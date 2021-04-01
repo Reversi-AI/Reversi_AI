@@ -438,7 +438,8 @@ class MCTSTimeSavingPlayer(Player):
         self._tree = self._tree.find_subtree_by_move(move)
         return move
 
-    def decision_time(self, game: ReversiGame, t0: Union[int, float], b: Union[int, float]) -> float:
+    def decision_time(self, game: ReversiGame, t0: Union[int, float],
+                      b: Union[int, float]) -> float:
         """Return the decision time based on the given game state. The given time constant
         should be greater than 1. Raise ValueError if time_constant <= 1
         """
