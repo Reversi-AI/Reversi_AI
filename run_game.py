@@ -141,8 +141,5 @@ if __name__ == '__main__':
     # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
 
     # test for MCTSPlayer
-<<<<<<< HEAD
     run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
-=======
-    run_game(PositionalPlayer(4), MCTSTimerPlayer(8, 1), 8, True)
->>>>>>> parent of 7ad2b41 (More gui fixes)
+    run_game(PositionalPlayer(4), MCTSTimerPlayer(3), 8, True)
