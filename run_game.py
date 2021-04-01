@@ -1,43 +1,37 @@
 """Run Reversi game
-
 Module Description
 ===============================
-
 This module contains a collection of functions which conduct game plays of Reversi.
-
 Copyright and Usage Information
 ===============================
-
 Authors:
     - Haoze Deng
     - Peifeng Zhang
     - Man Chon Ho
     - Alexander Nicholas Conway
-
 This file is Copyright (c) 2021.
 """
 import copy
 import time
 
 from constants import BLACK, WHITE
-from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer
+from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
-from mcts import MCTSRoundPlayer, MCTSTimerPlayer
+from mcts import MCTSPlayer, MCTSTimerPlayer
 import tkinter as tk
-from visualize import ReversiApplication
+from tk_gui import ReversiGUI
 
 
-def run_games_visual(player1: Player, player2: Player, n: int, size: int) -> None:
+def run_games_visual(player1: Player, player2: Player, size: int) -> None:
     """Run n reversi games using the given players and show a visual"""
     root = tk.Tk()
-    window = ReversiApplication(master=root)
-    # window.after(1000, run_games_ai(player1, player2, 1, size, window))
-    window.mainloop()
+    root.geometry('500x500')
+    gui = ReversiGUI(root, size)
+    gui.run_game(player1, player2)
 
 
 def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None) -> None:
     """Run n games using the given Players.
-
     Preconditions:
         - n >= 1
     """
@@ -82,7 +76,6 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer
 def run_game(black: Player, white: Player, size: int,
              verbose: bool = False, visualizer=None) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
-
     Return the winner and list of moves made in the game.
     """
     game = ReversiGame(size)
@@ -133,13 +126,15 @@ if __name__ == '__main__':
     # run_games_ai(player1=MobilityPlayer(3),
     #              player2=PositionalPlayer(3),
     #              n=100, size=8)
-
     # test for run_game
     # result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
-
     # test for run_games_visual
     # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
-
     # test for MCTSPlayer
+<<<<<<< Updated upstream
     run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
     run_game(PositionalPlayer(4), MCTSTimerPlayer(3), 8, True)
+=======
+    # run_game(PositionalPlayer(4), MCTSTimerPlayer(8, 1), 8, True)
+    run_games_visual(GUIPlayer(), MCTSTimerPlayer(8, 1), 8)
+>>>>>>> Stashed changes
