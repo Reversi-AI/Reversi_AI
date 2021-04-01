@@ -104,6 +104,7 @@ class MCTSTree:
                 selected_leaf.expand()
                 assert len(selected_leaf._subtrees) > 0
                 selected_leaf = selected_leaf._subtrees[0]
+                path.append(selected_leaf)
 
             # rollout on the selected node and update the path with the result
             rollout_winner = selected_leaf.rollout()
