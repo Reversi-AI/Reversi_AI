@@ -14,20 +14,21 @@ This file is Copyright (c) 2021.
 import copy
 import time
 
-from constants import BLACK, WHITE
+from constants import BLACK, WHITE, DEFAULT_FPS
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
-from mcts import MCTSRoundPlayer, MCTSTimerPlayer
+from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
 import tkinter as tk
 from tk_gui import ReversiGUI
 
 
-def run_games_visual(player1: Player, player2: Player, size: int) -> None:
+def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
     """Run n reversi games using the given players and show a visual"""
     root = tk.Tk()
     root.geometry('500x500')
     gui = ReversiGUI(root, size)
-    gui.run_game(player1, player2)
+    gui.run_game(player1, player2, fps)
+    root.mainloop()
 
 
 def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None) -> None:
@@ -133,4 +134,4 @@ if __name__ == '__main__':
     # test for MCTSPlayer
     # run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
     # run_game(PositionalPlayer(4), MCTSTimerPlayer(3), 8, True)
-    run_games_visual(GUIPlayer(), MCTSTimerPlayer(0.1), 8)
+    run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(5), 8)

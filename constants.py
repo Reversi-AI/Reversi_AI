@@ -42,3 +42,6 @@ BOARD_WEIGHT_6 = [[100, -20, 10, 10, -20, 100],
 
 # representation of the initial states of the game in game_tree
 START_MOVE = '*'
+
+# Default fps for game display
+DEFAULT_FPS = 30
