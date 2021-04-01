@@ -243,19 +243,19 @@ class MCTSRoundPlayer(Player):
     #     - _round: The number of round of MCTS performed on each move
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
-    _round: int
+    _n: int
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
 
-    def __init__(self, round: Union[int, float], tree: Optional[MCTSTree] = None,
+    def __init__(self, n: Union[int, float], tree: Optional[MCTSTree] = None,
                  c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
-        :param round: round of MCTS run per move
+        :param n: round of MCTS run per move
         :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
         """
-        self._round = round
+        self._n = n
         self._tree = tree
         self._c = c
 
@@ -287,7 +287,7 @@ class MCTSRoundPlayer(Player):
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
-        for _ in range(self._round):
+        for _ in range(self._n):
             self._tree.mcts_round(self._c)
 
         # update tree with the decided move

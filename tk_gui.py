@@ -38,9 +38,9 @@ class ReversiGUI:
                 self.game.make_move(previous_move)
                 self.draw_game_state()
                 time.sleep(1)
-                root.update()
+                self.root.update()
             else:
-                root.wait_variable(self.clicked)
+                self.root.wait_variable(self.clicked)
                 self.clicked.set(not self.clicked.get())
 
             if current_player is black:
@@ -86,7 +86,7 @@ class ReversiGUI:
         if move in self.game.get_valid_moves():
             self.game.make_move(move)
             self.draw_game_state()
-            root.update()
+            self.root.update()
             self.clicked.set(not self.clicked.get())
             return
 
