@@ -56,15 +56,23 @@ class MCTSTree:
         self.simulations = {BLACK: 0, WHITE: 0, 'Draw': 0}
         self._subtrees = []
 
+    def get_game_after_move(self) -> ReversiGame:
+        """Getter method of _game_after_move"""
+        return self._game_after_move
+
+    def get_subtrees(self) -> list[MCTSTree]:
+        """Getter method of _subtrees"""
+        return self._subtrees
+
     def find_subtree_by_move(self, move: str) -> Optional[MCTSTree]:
         """Return the subtree corresponding to the given move.
 
-        Return None if no subtree corresponds to that move.
+        Raise ValueError if no subtree corresponds to that move.
         """
         for subtree in self._subtrees:
             if subtree.move == move:
                 return subtree
-        return None
+        raise ValueError
 
     def get_most_confident_move(self) -> str:
         """Return the move of the subtree that has been simulated for the most number of time
@@ -229,26 +237,27 @@ def load_tree(path: str) -> MCTSTree:
     return tree
 
 
-class MCTSPlayer(Player):
+class MCTSRoundPlayer(Player):
     """A Reversi AI player who makes decisions with MCTS"""
     # Private Instance Attributes:
+    #     - _round: The number of round of MCTS performed on each move
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
-    #     - _n: The number of round of MCTS performed on each move
-    _tree: MCTSTree
+    _round: int
+    _tree: Optional[MCTSTree]
     _c: Union[float, int]
-    _n: int
 
-    def __init__(self, game_size: int, n: int, c: Union[float, int] = math.sqrt(2)) -> None:
-        """Initialize this player with the round of MCTS per move and exploration parameter"""
-        self._tree = MCTSTree(START_MOVE, ReversiGame(game_size))
-        self._n = n
-        self._c = c
-        self._tree.expand()
+    def __init__(self, round: Union[int, float], tree: Optional[MCTSTree] = None,
+                 c: Union[float, int] = math.sqrt(2)) -> None:
+        """Initialize this player with the time limit per move and exploration parameter
 
-    def set_tree(self, tree: MCTSTree) -> None:
-        """Set self._tree to a given tree"""
+        :param round: round of MCTS run per move
+        :param tree: the MCTSTree used for making decisions
+        :param c: exploration parameter
+        """
+        self._round = round
         self._tree = tree
+        self._c = c
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -265,11 +274,20 @@ class MCTSPlayer(Player):
         have been made
         :return: a move to be made
         """
-        # update tree with previous move
-        if previous_move is not None:
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, game)
+            else:
+                self._tree = MCTSTree(previous_move, game)
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
             self._tree = self._tree.find_subtree_by_move(previous_move)
 
-        for _ in range(self._n):
+        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
+
+        for _ in range(self._round):
             self._tree.mcts_round(self._c)
 
         # update tree with the decided move
@@ -283,26 +301,22 @@ class MCTSTimerPlayer(Player):
     # Private Instance Attributes:
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
-    #     - _n: The number of round of MCTS performed on each move
-    _tree: MCTSTree
+    #     - _time_limit: The time limit for each move
+    _tree: Optional[MCTSTree]
     _c: Union[float, int]
     _time_limit: Union[int, float]
 
-    def __init__(self, game_size: int, time_limit: Union[int, float],
+    def __init__(self, time_limit: Union[int, float], tree: Optional[MCTSTree] = None,
                  c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param time_limit: time limit per move in seconds
+        :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
         """
-        self._tree = MCTSTree(START_MOVE, ReversiGame(game_size))
         self._time_limit = time_limit
-        self._c = c
-        self._tree.expand()
-
-    def set_tree(self, tree: MCTSTree) -> None:
-        """Set self._tree to a given tree"""
         self._tree = tree
+        self._c = c
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -319,9 +333,18 @@ class MCTSTimerPlayer(Player):
         have been made
         :return: a move to be made
         """
-        # update tree with previous move
-        if previous_move is not None:
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, game)
+            else:
+                self._tree = MCTSTree(previous_move, game)
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
             self._tree = self._tree.find_subtree_by_move(previous_move)
+
+        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         time_start = time.time()
         while time.time() - time_start < self._time_limit:
