@@ -385,20 +385,20 @@ class MCTSTimeSavingPlayer(Player):
 
         Preconditions:
             - time_decision_base > 1.0
-            - time_decision_intercept < time_decision_base
+            - 0 <= time_decision_intercept < time_decision_base
 
         :param time_limit: time limit per move in seconds
         :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
         """
-        if time_decision_base <= 1 or time_decision_intercept >= time_decision_base:
+        if time_decision_base > 1.0 and 0 <= time_decision_intercept < time_decision_base:
+            self.time_limit = time_limit
+            self.time_decision_base = time_decision_base
+            self.time_decision_intercept = time_decision_intercept
+            self._tree = tree
+            self._c = c
+        else:
             raise ValueError
-
-        self.time_limit = time_limit
-        self.time_decision_base = time_decision_base
-        self.time_decision_intercept = time_decision_intercept
-        self._tree = tree
-        self._c = c
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -446,5 +446,6 @@ class MCTSTimeSavingPlayer(Player):
         assert len(game.get_valid_moves()) >= 1
 
         if t0 > 1 and t0 > b:
-            return min(t0 ** len(game.get_valid_moves()), self.time_limit)
-        raise ValueError
+            return min(t0 ** len(game.get_valid_moves()) - b, self.time_limit)
+        else:
+            raise ValueError
