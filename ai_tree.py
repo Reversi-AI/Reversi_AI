@@ -123,6 +123,25 @@ class AIGameTree:
         line += ')'
         file_pointer.write(line)
         return
+    
+    def write_complete_tree(self, file_name: str) -> None:
+        """Write a tree recursively as a whole.
+        """
+        output_file = open(file_name, mode='w')
+        self._write_tree_recursive(output_file)
+        return
+
+    def _write_tree_recursive(self, output_file: TextIO) -> None:
+        """Write a tree recursively as a whole."""
+        line = self.move + ',' + str(self.white_win_probability) + ',' + \
+            str(self.is_white_move) + ',['
+        output_file.write(line)
+        for sub in range(0, len(self._subtrees)):
+            self._subtrees[sub]._write_tree_recursive(output_file)
+            if sub != len(self._subtrees) - 1:
+                output_file.write(',')
+        output_file.write(']')
+        return
 
     # def add_move_to_file(self, tree()):
     #     """"""
