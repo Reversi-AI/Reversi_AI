@@ -25,8 +25,8 @@ class AIGameTree:
     _subtrees: list[AIGameTree]
     white_win_probability: float
 
-    def __init__(self, move: str = GAME_START_MOVE,
-                 is_white_move: bool = True, white_win_probability: Optional[float] = 0) -> None:
+    def __init__(self, move: str = GAME_START_MOVE, is_white_move: bool = True,
+                 white_win_probability: Optional[float] = 0) -> None:
         """Initialize a new game tree.
 
         """
@@ -123,7 +123,7 @@ class AIGameTree:
         line += ')'
         file_pointer.write(line)
         return
-    
+
     def write_complete_tree(self, file_name: str) -> None:
         """Write a tree recursively as a whole.
         """
@@ -143,8 +143,25 @@ class AIGameTree:
         output_file.write(']')
         return
 
-    # def add_move_to_file(self, tree()):
-    #     """"""
+    def update_all_win_probability(self) -> None:
+        """Update all probabilities in the tree file."""
+
+    @staticmethod
+    def update_win_probability(self, level: int, move: str, win_probability: float, file_name: str) -> None:
+        """Update the win probability of given move on a given level (step number)."""
+
+    @staticmethod
+    def update_tree(self, previous: str, move: str, win_probability: float, file_name: str) -> None:
+        """Add a move just made to the tree file."""
+
+    @staticmethod
+    def read_tree_from_file(file_name: str, level: int = 0) -> AIGameTree:
+        """Read a complete game tree given a start level (number of step) from given file."""
+
+    @staticmethod
+    def read_next_moves(level: int, previous: str, file_name: str) -> list[AIGameTree]:
+        """Read the next possible moves after previous move on given level from file."""
+    
     @staticmethod
     def substring_by_notation(line: str, notation: str, front: bool) -> str:
         """Function to separate words from a line of using certain notation, if front is true, get the
@@ -159,4 +176,3 @@ class AIGameTree:
             return line[index + 1: len(line) - 1]
         else:
             return line[index + 1:]
-
