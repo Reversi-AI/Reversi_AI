@@ -20,6 +20,8 @@ from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
 import tkinter as tk
 from tk_gui import ReversiGUI
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
@@ -31,7 +33,8 @@ def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFA
     root.mainloop()
 
 
-def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None) -> None:
+def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None,
+                 show_stats: bool = False) -> None:
     """Run n games using the given Players.
     Preconditions:
         - n >= 1
@@ -72,6 +75,9 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer
 
     for outcome in stats:
         print(f'{outcome}: {stats[outcome]}/{n} ({100.0 * stats[outcome] / n:.2f}%)')
+
+    if show_stats:
+        plot_game_statistics(results)
 
 
 def run_game(black: Player, white: Player, size: int,
@@ -122,11 +128,36 @@ def run_game(black: Player, white: Player, size: int,
     return game.get_winner(), move_sequence
 
 
+def plot_game_statistics(results: list[str]) -> None:
+    """Plot the outcomes and win probabilities for a given list of Reversi game results.
+    This function is originally part of CSC111 Assignment 2 and has been adapted for Reversi.
+    Preconditions:
+        - all(r in {'White', 'Black', 'Draw'} for r in results)
+    """
+    outcomes_p1 = [1 if result == 'P1' else 0 for result in results]
+    outcomes_p2 = [1 if result == 'P2' else 0 for result in results]
+
+    p1_cumulative_win_probability = [sum(outcomes_p1[0:i]) / i for i in range(1,
+                                                                              len(outcomes_p1) + 1)]
+    p2_cumulative_win_probability = [sum(outcomes_p2[0:i]) / i for i in range(1,
+                                                                              len(outcomes_p2) + 1)]
+
+    fig = make_subplots(rows=1, cols=1)
+    fig.add_trace(go.Scatter(y=p1_cumulative_win_probability, mode='lines',
+                             name='Player1 win percentage (cumulative)'),
+                  row=1, col=1)
+    fig.add_trace(go.Scatter(y=p2_cumulative_win_probability, mode='lines',
+                             name='Player2 win percentage (cumulative)'),
+                  row=1, col=1)
+    fig.update_yaxes(range=[0.0, 1.0], row=1, col=1)
+
+    fig.update_layout(title='Reversi Game Results', xaxis_title='Game')
+    fig.show()
+
+
 if __name__ == '__main__':
     # test for run_games_ai
-    # run_games_ai(player1=MobilityPlayer(3),
-    #              player2=PositionalPlayer(3),
-    #              n=100, size=8)
+    # run_games_ai(player1=MCTSTimerPlayer(time_limit=0.1), player2=RandomPlayer(), n=100, size=6, show_stats=True)
     # test for run_game
     # result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
     # test for run_games_visual
