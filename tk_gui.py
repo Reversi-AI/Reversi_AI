@@ -52,6 +52,7 @@ class ReversiGUI:
             else:
                 current_player = black
 
+        self.win_msg()
         print(self.game.get_winner())
 
     def gui_move(self) -> str:
@@ -106,6 +107,22 @@ class ReversiGUI:
                 self.root.update()
                 self.click_wanted.set(False)
                 return
+
+    def win_msg(self) -> None:
+        """popup window for game ending. Contains winner information."""
+        popup = tk.Tk()
+        popup.wm_title("Game Over")
+        if self.game.get_winner() == WHITE:
+            msg = "White wins"
+        elif self.game.get_winner() == BLACK:
+            msg = "Black wins"
+        else:
+            msg = "It's a draw"
+        label = tk.Label(popup, text=msg)
+        label.pack(side="top", fill="x", pady=20)
+        b1 = tk.Button(popup, text="Okay", command=popup.destroy)
+        b1.pack()
+        popup.mainloop()
 
 
 if __name__ == '__main__':
