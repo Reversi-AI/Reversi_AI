@@ -7,7 +7,11 @@ from typing import Optional
 
 
 class ReversiGUI:
-    """"""
+    """
+    GUI class for the Reversi Game
+    This class is responsible for starting a game board, handling game click events, and processing
+    and updating current board.
+    """
 
     def __init__(self, parent, size) -> None:
         """initialize gui"""
@@ -24,7 +28,7 @@ class ReversiGUI:
         # initialize game
         self.game = ReversiGame(size)
 
-    def run_game(self, black, white, fps : int) -> None:
+    def run_game(self, black, white, fps: int) -> None:
         """Run a Reversi game between the two given players.
 
         Return the winner and list of moves made in the game.
@@ -87,7 +91,7 @@ class ReversiGUI:
 
     def click(self, event) -> None:
         """Called when mouse is clicked on the given canvas
-        Finds the relative position of the click and excecutes a move"""
+        Finds the relative position of the click and executes a move"""
         if self.click_wanted.get():
             xcor = event.x // (self.board.winfo_width() / 8)
             ycor = event.y // (self.board.winfo_height() / 8)
