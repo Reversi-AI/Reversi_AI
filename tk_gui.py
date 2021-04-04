@@ -13,8 +13,15 @@ class ReversiGUI:
     and updating current board.
     """
 
-    def __init__(self, parent, size) -> None:
-        """initialize gui"""
+    def __init__(self, parent: tk.Tk, size: int) -> None:
+        """initialize gui
+
+        Preconditions:
+            - size == 8 or size == 6
+
+        :param parent: tkinter root object
+        :param size: size of the game, which is either 8 or 6
+        """
         # setting up
         self.root = parent
         self.root.title('Reversi')
@@ -44,7 +51,7 @@ class ReversiGUI:
         self.game = ReversiGame(size)
         self.draw_game_state()
 
-    def run_game(self, black, white, fps: int = DEFAULT_FPS) -> None:
+    def run_game(self, black: Player, white: Player, fps: int = DEFAULT_FPS) -> None:
         """Run a Reversi game between the two given players.
 
         Return the winner and list of moves made in the game.
@@ -127,7 +134,7 @@ class ReversiGUI:
 
         self.board.pack()
 
-    def click(self, event) -> None:
+    def click(self, event: tk.Event) -> None:
         """Called when mouse is clicked on the given canvas
         Finds the relative position of the click and executes a move"""
         if self.click_wanted.get():
