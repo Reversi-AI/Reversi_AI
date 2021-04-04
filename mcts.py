@@ -358,17 +358,21 @@ class MCTSTimerPlayer(Player):
 
 
 class MCTSTimeSavingPlayer(Player):
-    """A Reversi AI player who makes decisions with MCTS. The decision time is based
-    on the number of valid moves. The calculation for decision time is
-    t = min(t_0^(num_valid_moves) - b, time_limit) where t_0, b is a given constant
+    """A Reversi AI player who makes decisions with MCTS. Before making a decision, the player
+    would repeatedly run MCTS on its tree. Once the number of round reaches a certain number
+    or the time reaches the time limit of the move, the player would stop running MCTS and
+    make a decision.
+
+    The number of rounds of MCTS run per move is a exponential function of the number of
+    valid moves, which is calculated by a0^n where a0 is a given constant and n is the number
+    of valid moves of the current game state.
 
     Instance Attributes:
+        - n: the number of MCTS runs per turn
         - time_limit: the time limit for each move
-        - time_decision_constant: the time decision constant for each move
     """
+    n: int
     time_limit: Union[int, float]
-    time_decision_base: Union[int, float]
-    time_decision_intercept: Union[int, float]
 
     # Private Instance Attributes:
     #     - _tree: The decision tree for this player to make its moves
@@ -377,28 +381,19 @@ class MCTSTimeSavingPlayer(Player):
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
 
-    def __init__(self, time_limit: Union[int, float],
-                 time_decision_base: Union[int, float] = 1.3,
-                 time_decision_intercept: Union[int, float] = 0,
+    def __init__(self, n: Union[int, float], time_limit: Union[int, float],
                  tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2)) -> None:
-        """Initialize this player with the time limit per move and exploration parameter
+        """Initialize this player with the time limit per move and other parameters
 
-        Preconditions:
-            - time_decision_base > 1.0
-            - 0 <= time_decision_intercept < time_decision_base
-
+        :param n: the number of MCTS runs per turn
         :param time_limit: time limit per move in seconds
         :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
         """
-        if time_decision_base > 1.0 and 0 <= time_decision_intercept < time_decision_base:
-            self.time_limit = time_limit
-            self.time_decision_base = time_decision_base
-            self.time_decision_intercept = time_decision_intercept
-            self._tree = tree
-            self._c = c
-        else:
-            raise ValueError
+        self.n = n
+        self.time_limit = time_limit
+        self._tree = tree
+        self._c = c
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -427,25 +422,13 @@ class MCTSTimeSavingPlayer(Player):
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
-        decision_time = self.decision_time(game, self.time_decision_base,
-                                           self.time_decision_intercept)
+        runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
-        while time.time() - time_start < decision_time:
+        while time.time() - time_start < self.time_limit and runs_so_far < self.n:
             self._tree.mcts_round(self._c)
+            runs_so_far += 1
 
         # update tree with the decided move
         move = self._tree.get_most_confident_move()
         self._tree = self._tree.find_subtree_by_move(move)
         return move
-
-    def decision_time(self, game: ReversiGame, t0: Union[int, float],
-                      b: Union[int, float]) -> float:
-        """Return the decision time based on the given game state. The given time constant
-        should be greater than 1. Raise ValueError if time_constant <= 1
-        """
-        assert len(game.get_valid_moves()) >= 1
-
-        if t0 > 1 and t0 > b:
-            return min(t0 ** len(game.get_valid_moves()) - b, self.time_limit)
-        else:
-            raise ValueError
