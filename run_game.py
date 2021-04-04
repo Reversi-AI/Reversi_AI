@@ -27,7 +27,6 @@ from plotly.subplots import make_subplots
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
     """Run n reversi games using the given players and show a visual"""
     root = tk.Tk()
-    root.geometry('500x500')
     gui = ReversiGUI(root, size)
     gui.run_game(player1, player2, fps)
     root.mainloop()

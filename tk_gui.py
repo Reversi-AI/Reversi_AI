@@ -2,7 +2,7 @@ import tkinter as tk
 import time
 
 from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
-from constants import BLACK, WHITE
+from constants import BLACK, WHITE, DEFAULT_FPS
 from typing import Optional
 
 
@@ -19,7 +19,22 @@ class ReversiGUI:
         self.root = parent
         self.root.title('Reversi')
         self.frame = tk.Frame(parent)
-        self.board = tk.Canvas(height=500, width=500, bg='black')
+
+        status_bar = tk.Frame(self.root, bg='blue')
+        status_bar.pack()
+
+        self.piece_count_dis = tk.Label(status_bar, text='Black: 2, White:2', width=20, anchor='w',
+                                        font=('Helvetica', 16))
+        self.piece_count_dis.grid(row=0, column=0)
+        self.current_player_dis = tk.Label(status_bar, text='Current Player: Black', width=20,
+                                           anchor='center', font=('Helvetica', 16))
+        self.current_player_dis.grid(row=0, column=1)
+        self.previous_move_dis = tk.Label(status_bar, text='', width=20, anchor='e',
+                                          font=('Helvetica', 16))
+        self.previous_move_dis.grid(row=0, column=2)
+
+        self.board = tk.Canvas(self.frame, height=500, width=500, bg='black', bd=-2)
+        self.board.pack(pady=10)
         self.frame.pack()
         self.click_wanted = tk.BooleanVar()
         self.board.bind('<Button-1>', self.click)
@@ -27,8 +42,9 @@ class ReversiGUI:
 
         # initialize game
         self.game = ReversiGame(size)
+        self.draw_game_state()
 
-    def run_game(self, black, white, fps: int) -> None:
+    def run_game(self, black, white, fps: int = DEFAULT_FPS) -> None:
         """Run a Reversi game between the two given players.
 
         Return the winner and list of moves made in the game.
@@ -41,7 +57,7 @@ class ReversiGUI:
             previous_move = current_player.make_move(self.game, previous_move)
             if previous_move != 'mouse_pos':
                 self.game.make_move(previous_move)
-                self.draw_game_state()
+                self.draw_game_state(previous_move)
                 time.sleep(1 / fps)
                 self.root.update()
             else:
@@ -52,7 +68,15 @@ class ReversiGUI:
             else:
                 current_player = black
 
+        # update status bar
+        if self.game.get_winner() == BLACK:
+            self.current_player_dis.config(text='Black wins!')
+        elif self.game.get_winner() == WHITE:
+            self.current_player_dis.config(text='White wins!')
+        else:
+            self.current_player_dis.config(text='Draw')
         self.win_msg()
+
         print(self.game.get_winner())
 
     def gui_move(self) -> str:
@@ -64,8 +88,21 @@ class ReversiGUI:
             self.root.wait_variable(self.click_wanted)
             return self.click_move
 
-    def draw_game_state(self, h=500, w=500) -> None:
+    def draw_game_state(self, previous_move: Optional[str] = None,
+                        h: int = 500, w: int = 500) -> None:
         """Visualize the game by drawing in the window"""
+        # update status bar
+        num_piece = self.game.get_num_pieces()
+        self.piece_count_dis.config(text=f'Black: {num_piece[BLACK]}, White: {num_piece[WHITE]}')
+        active_player = self.game.get_current_player()
+        if active_player == BLACK:
+            self.current_player_dis.config(text='Current player: Black')
+            if previous_move is not None:
+                self.previous_move_dis.config(text=f'White moved {previous_move}')
+        else:
+            self.current_player_dis.config(text='Current player: White')
+            if previous_move is not None:
+                self.previous_move_dis.config(text=f'Black moved {previous_move}')
 
         lst = self.game.get_game_board()
 
@@ -127,9 +164,7 @@ class ReversiGUI:
 
 if __name__ == '__main__':
     root = tk.Tk()
-    root.geometry('500x500')
     gui = ReversiGUI(root, 8)
     # gui.run_game(RandomPlayer(), RandomPlayer())
     # gui.run_game(GUIPlayer(), RandomPlayer())
-    root.deiconify()
     root.mainloop()
