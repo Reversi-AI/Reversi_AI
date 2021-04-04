@@ -1,3 +1,22 @@
+"""Reversi Game GUI implementation
+
+Module Description
+===============================
+
+This module contains a collection of classes and functions which implements the GUI
+the Reversi Game with Tkinter.
+
+Copyright and Usage Information
+===============================
+
+Authors:
+    - Haoze Deng
+    - Peifeng Zhang
+    - Man Chon Ho
+    - Alexander Nicholas Conway
+
+This file is Copyright (c) 2021.
+"""
 import tkinter as tk
 import time
 
