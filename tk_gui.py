@@ -171,6 +171,10 @@ class ReversiGUI:
                 self.click_wanted.set(False)
                 return
 
+    def quit(self) -> None:
+        self.root.destroy()
+        exit()
+
     def win_msg(self) -> None:
         """popup window for game ending. Contains winner information."""
         popup = tk.Tk()
@@ -183,7 +187,8 @@ class ReversiGUI:
             msg = "It's a draw"
         label = tk.Label(popup, text=msg)
         label.pack(side="top", fill="x", pady=20)
-        b1 = tk.Button(popup, text="Okay", command=popup.destroy)
+        b1 = tk.Button(popup, text="quit game", command=lambda: [popup.destroy(), self.quit()])
+        # b2 = tk.Button(popup, text="start a new game", command=lambda: [popup.destroy(), )
         b1.pack()
         popup.mainloop()
 
