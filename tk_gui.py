@@ -157,8 +157,8 @@ class ReversiGUI:
         """Called when mouse is clicked on the given canvas
         Finds the relative position of the click and executes a move"""
         if self.click_wanted.get():
-            xcor = event.x // (self.board.winfo_width() / 8)
-            ycor = event.y // (self.board.winfo_height() / 8)
+            xcor = event.x // (self.board.winfo_width() / self.game.get_size())
+            ycor = event.y // (self.board.winfo_height() / self.game.get_size())
 
             pos = (ycor, xcor)
             move = _index_to_algebraic(pos)
