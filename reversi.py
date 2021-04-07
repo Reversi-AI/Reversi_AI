@@ -477,5 +477,7 @@ class RandomPlayer(Player):
 class GUIPlayer(Player):
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Tells the game to use the mouse position on the board"""
-
+        moves = game.get_valid_moves()
+        if all({len(m) != 2 for m in moves}):   # the only move is pass
+            return 'pass'
         return 'mouse_pos'
