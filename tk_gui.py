@@ -174,6 +174,7 @@ class ReversiGUI:
                 return
 
     def quit(self) -> None:
+        """quit the entire game"""
         self.root.destroy()
         exit()
 
@@ -190,14 +191,24 @@ class ReversiGUI:
         label = tk.Label(popup, text=msg)
         label.pack(side="top", fill="x", pady=20)
         b1 = tk.Button(popup, text="quit game", command=lambda: [popup.destroy(), self.quit()])
-        # b2 = tk.Button(popup, text="start a new game", command=lambda: [popup.destroy(), )
+        b2 = tk.Button(popup, text="return to menu", command=lambda: [popup.destroy(), self.restart()])
         b1.pack()
+        b2.pack()
         popup.mainloop()
 
-    def start_page(self):
+    def start_page(self) -> None:
         """this method allows the root to call on the game's frame --> basically allowing screen
         switching"""
         self.frame.pack()
+
+    def restart(self) -> None:
+        """return to GameStartScreen"""
+        self.frame.pack_forget()
+        self.root.destroy()
+        root = tk.Tk()
+        page_1 = GameStartScreen(root)
+        page_1.main_page()
+        root.mainloop()
 
 
 class GameStartScreen:
