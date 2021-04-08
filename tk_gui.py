@@ -47,17 +47,18 @@ class ReversiGUI:
         self.root = parent
         self.root.title('Reversi')
         self.frame = tk.Frame(parent)
+        self.status_bar = None
 
-        status_bar = tk.Frame(self.root, bg='blue')
-        status_bar.pack()
+        self.status_bar = tk.Frame(self.root, bg='blue')
+        self.status_bar.pack()
 
-        self.piece_count_dis = tk.Label(status_bar, text='Black: 2, White:2', width=20, anchor='w',
+        self.piece_count_dis = tk.Label(self.status_bar, text='Black: 2, White:2', width=20, anchor='w',
                                         font=('Helvetica', 16))
         self.piece_count_dis.grid(row=0, column=0)
-        self.current_player_dis = tk.Label(status_bar, text='Current Player: Black', width=20,
+        self.current_player_dis = tk.Label(self.status_bar, text='Current Player: Black', width=20,
                                            anchor='center', font=('Helvetica', 16))
         self.current_player_dis.grid(row=0, column=1)
-        self.previous_move_dis = tk.Label(status_bar, text='', width=20, anchor='e',
+        self.previous_move_dis = tk.Label(self.status_bar, text='', width=20, anchor='e',
                                           font=('Helvetica', 16))
         self.previous_move_dis.grid(row=0, column=2)
 
@@ -204,11 +205,9 @@ class ReversiGUI:
     def restart(self) -> None:
         """return to GameStartScreen"""
         self.frame.pack_forget()
-        self.root.destroy()
-        root = tk.Tk()
+        self.status_bar.pack_forget()
         page_1 = GameStartScreen(root)
         page_1.main_page()
-        root.mainloop()
 
 
 class GameStartScreen:
@@ -228,6 +227,7 @@ class GameStartScreen:
         variable_board.set('8')
         tk.Label(self.frame, text='Reversi').pack()
         tk.Button(self.frame, text='start game', command=self.start_game).pack()
+        tk.Button(self.frame, text='quit game', command=self.quit_game).pack()
         tk.OptionMenu(self.frame, variable_player, *player_choices, command=self.set_player).pack()
         tk.OptionMenu(self.frame, variable_board, *board_choices, command=self.set_board).pack()
         self.page_1 = None
@@ -246,7 +246,11 @@ class GameStartScreen:
             self.page_1.start_page()
             self.page_1.run_game(GUIPlayer(), self.player, self.boardsize)
         else:
-            print('please select a player and/or a board size')
+            # print('please select a player and/or a board size')
+            self.frame.pack_forget()
+            self.page_1 = ReversiGUI(self.root, size=8)
+            self.page_1.start_page()
+            self.page_1.run_game(GUIPlayer(), MCTSTimeSavingPlayer(100, 8), 8)
 
     def set_player(self, value) -> None:
         """drop down menu selecting AI player"""
@@ -265,6 +269,11 @@ class GameStartScreen:
             self.boardsize = 8
         else:
             self.boardsize = 6
+
+    def quit_game(self) -> None:
+        """quit the entire game"""
+        self.root.destroy()
+        exit()
 
 
 if __name__ == '__main__':
