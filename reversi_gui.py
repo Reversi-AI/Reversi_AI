@@ -1,4 +1,21 @@
-""""""
+"""Reversi GUI
+
+Module Description
+===============================
+
+This module contains all GUI of a reversi game application.
+
+Copyright and Usage Information
+===============================
+
+Authors:
+    - Haoze Deng
+    - Peifeng Zhang
+    - Man Chon Ho
+    - Alexander Nicholas Conway
+
+This file is Copyright (c) 2021.
+"""
 from typing import Union
 
 from mcts import MCTSTimeSavingPlayer
@@ -44,7 +61,11 @@ SIDE_8 = 86
 
 
 def run_reversi_game(dpi: tuple = DEFAULT_DPI) -> None:
-    """"""
+    """Call this function directly to start the reversi game window.
+    This is the main thread of the game process.
+
+    The default dpi is 800x800 (please do not change the dpi since dpi adaptation is not implemented)
+    """
     pygame.init()
     if not pygame.display.get_init():
         print('fail to load display')
@@ -321,4 +342,5 @@ def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, s
 
 
 if __name__ == "__main__":
+    """Run this __main__ to see the game."""
     run_reversi_game()
