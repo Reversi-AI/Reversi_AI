@@ -431,8 +431,8 @@ class MCTSTimeSavingPlayer(Player):
         # update tree with the decided move
 
         # need to wait a bit if the mcts went by TOO fast
-        if time.time() - time_start < 1:
-            time.sleep(1)
+        if time.time() - time_start < 0.5:
+            time.sleep(0.5)
         move = self._tree.get_most_confident_move()
         self._tree = self._tree.find_subtree_by_move(move)
         return move

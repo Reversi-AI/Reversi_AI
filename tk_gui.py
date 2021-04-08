@@ -195,13 +195,17 @@ class ReversiGUI:
         popup.mainloop()
 
     def start_page(self):
+        """this method allows the root to call on the game's frame --> basically allowing screen
+        switching"""
         self.frame.pack()
+
 
 class GameStartScreen:
     """
     starting screen of the game
     """
-    def __init__(self, root=None):
+    def __init__(self, root=None) -> None:
+        """initializes the main menu of the game"""
         self.root = root
         self.frame = tk.Frame(self.root)
         self.frame.pack()
@@ -219,11 +223,12 @@ class GameStartScreen:
         self.player = None
         self.boardsize = None
 
-
-    def main_page(self):
+    def main_page(self) -> None:
+        """allows this frame to be packed and called at another time"""
         self.frame.pack()
 
-    def start_game(self):
+    def start_game(self) -> None:
+        """start game button clicked. starts the reversi gaame with the selected parameters"""
         if self.player is not None and self.boardsize is not None:
             self.frame.pack_forget()
             self.page_1 = ReversiGUI(self.root, size=self.boardsize)
@@ -232,7 +237,8 @@ class GameStartScreen:
         else:
             print('please select a player and/or a board size')
 
-    def set_player(self, value):
+    def set_player(self, value) -> None:
+        """drop down menu selecting AI player"""
         if value == 'Mobility Player':
             self.player = MobilityPlayer(3)
         elif value == 'Positional Player':
@@ -242,12 +248,12 @@ class GameStartScreen:
         else:
             self.player = MCTSTimeSavingPlayer(100, 8)
 
-    def set_board(self, value):
+    def set_board(self, value) -> None:
+        """drop down menu selecting board size"""
         if value == '8':
             self.boardsize = 8
         else:
             self.boardsize = 6
-
 
 
 if __name__ == '__main__':
