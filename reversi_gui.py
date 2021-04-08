@@ -38,10 +38,10 @@ BOARD_6 = {'a1': (85, 610), 'a2': (85, 500), 'a3': (85, 385), 'a4': (90, 275), '
            'c1': (300, 610), 'c2': (300, 500), 'c3': (300, 385), 'c4': (305, 275), 'c5': (305, 165), 'c6': (305, 60),
            'd1': (405, 610), 'd2': (405, 500), 'd3': (405, 385), 'd4': (410, 275), 'd5': (410, 165), 'd6': (410, 60),
            'e1': (515, 610), 'e2': (515, 500), 'e3': (515, 385), 'e4': (515, 275), 'e5': (519, 165), 'e6': (519, 60),
-           'f1': (625, 610), 'f2': (625, 500), 'f3': (625, 385), 'f4': (625, 275), 'f5': (625, 165), 'f6': (625, 60),}
-SIDE_6 = 110
-BOARD_8 = {'a1': (75, 649), 'a2': (75, 563), 'a3': (75, 476), 'a4': (75, 392), 'a5': (75, 303), 'a6': (75, 220),
-           'a7': (75, 135), 'a8': (75, 50),
+           'f1': (625, 610), 'f2': (625, 500), 'f3': (625, 385), 'f4': (625, 275), 'f5': (625, 165), 'f6': (625, 60)}
+SIDE_6 = 102
+BOARD_8 = {'a1': (65, 649), 'a2': (66, 563), 'a3': (67, 476), 'a4': (69, 392), 'a5': (70, 303), 'a6': (71, 220),
+           'a7': (72, 135), 'a8': (75, 50),
            'b1': (152, 649), 'b2': (152, 563), 'b3': (153, 476), 'b4': (155, 392), 'b5': (157, 303), 'b6': (158, 220),
            'b7': (159, 135), 'b8': (159, 50),
            'c1': (238, 649), 'c2': (238, 563), 'c3': (238, 476), 'c4': (238, 392), 'c5': (240, 303), 'c6': (240, 220),
@@ -55,9 +55,8 @@ BOARD_8 = {'a1': (75, 649), 'a2': (75, 563), 'a3': (75, 476), 'a4': (75, 392), '
            'g1': (573, 649), 'g2': (573, 563), 'g3': (573, 476), 'g4': (573, 392), 'g5': (574, 303), 'g6': (574, 220),
            'g7': (574, 135), 'g8': (574, 50),
            'h1': (657, 649), 'h2': (657, 563), 'h3': (657, 476), 'h4': (657, 392), 'h5': (656, 303), 'h6': (656, 220),
-           'h7': (656, 135), 'h8': (656, 50)
-           }
-SIDE_8 = 86
+           'h7': (656, 135), 'h8': (656, 50)}
+SIDE_8 = 80
 
 
 def run_reversi_game(dpi: tuple = DEFAULT_DPI) -> None:
@@ -86,7 +85,7 @@ def run_reversi_game(dpi: tuple = DEFAULT_DPI) -> None:
                 elif ai_num == 4:
                     player = MCTSTimeSavingPlayer(100, 8)
                 elif ai_num == 5:
-                    continue    # Not implemented yet
+                    continue    # This mode is not implemented yet
                 elif ai_num == 0:
                     break
                 board_size = _choose_board_menu(game_surface)
@@ -111,11 +110,11 @@ def _main_menu(game_surface: pygame.Surface) -> int:
     start_button = pygame.image.load('assets/start_button.png')
     game_surface.blit(start_button, (250, 320))
     start_button_area = ((255, 250 + BUTTON_SIZE[0] - 5), (325, 320 + BUTTON_SIZE[1] - 5))
-    start_button_rect = pygame.Rect(255, 325, BUTTON_SIZE[0] - 5, BUTTON_SIZE[1] - 5)
+    # start_button_rect = pygame.Rect(255, 325, BUTTON_SIZE[0] - 5, BUTTON_SIZE[1] - 5)
     quit_button = pygame.image.load('assets/quit_button.png')
     game_surface.blit(quit_button, (250, 380))
     quit_button_area = ((255, 250 + BUTTON_SIZE[0] - 5), (385, 380 + BUTTON_SIZE[1] - 5))
-    quit_button_rect = pygame.Rect(255, 385, BUTTON_SIZE[0] - 5, BUTTON_SIZE[1] - 5)
+    # quit_button_rect = pygame.Rect(255, 385, BUTTON_SIZE[0] - 5, BUTTON_SIZE[1] - 5)
 
     original_surface = game_surface.copy()
     button_down = pygame.image.load('assets/button_down.png')
@@ -123,7 +122,7 @@ def _main_menu(game_surface: pygame.Surface) -> int:
 
     while True:
         event = pygame.event.wait()
-        if event.type == pygame.MOUSEMOTION:
+        if event.type == pygame.MOUSEMOTION:    # The code in this if check has problems yet to be found.
             mouse_pos = pygame.mouse.get_pos()
             if start_button_area[0][0] <= mouse_pos[0] <= start_button_area[0][1] and \
                     start_button_area[1][0] <= mouse_pos[1] <= start_button_area[1][1]:
@@ -324,18 +323,18 @@ def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, s
             if board[row_num][col_num] == BLACK:
                 pos = _INDEX_TO_COL[col_num] + _INDEX_TO_ROW[row_num]
                 if size == 6:
-                    coordinates = BOARD_6[pos]
+                    coordinates = (BOARD_6[pos][0] + SIDE_6 // 5, BOARD_6[pos][1] + SIDE_6 // 5)
                     game_surface.blit(black_chess6, coordinates)
                 else:
-                    coordinates = BOARD_8[pos]
+                    coordinates = (BOARD_8[pos][0] + SIDE_8 // 6, BOARD_8[pos][1] + SIDE_8 // 6)
                     game_surface.blit(black_chess8, coordinates)
             elif board[row_num][col_num] == WHITE:
                 pos = _INDEX_TO_COL[col_num] + _INDEX_TO_ROW[row_num]
                 if size == 6:
-                    coordinates = BOARD_6[pos]
+                    coordinates = (BOARD_6[pos][0] + SIDE_6 // 5, BOARD_6[pos][1] + SIDE_6 // 5)
                     game_surface.blit(white_chess6, coordinates)
                 else:
-                    coordinates = BOARD_8[pos]
+                    coordinates = (BOARD_8[pos][0] + SIDE_8 // 6, BOARD_8[pos][1] + SIDE_8 // 6)
                     game_surface.blit(white_chess8, coordinates)
     pygame.display.flip()
     return
