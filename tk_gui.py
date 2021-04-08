@@ -20,6 +20,8 @@ This file is Copyright (c) 2021.
 import tkinter as tk
 import time
 
+from mcts import MCTSTimeSavingPlayer
+from minimax import MobilityPlayer, PositionalPlayer
 from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
 from constants import BLACK, WHITE, DEFAULT_FPS
 from typing import Optional
@@ -192,10 +194,69 @@ class ReversiGUI:
         b1.pack()
         popup.mainloop()
 
+    def start_page(self):
+        self.frame.pack()
+
+class GameStartScreen:
+    """
+    starting screen of the game
+    """
+    def __init__(self, root=None):
+        self.root = root
+        self.frame = tk.Frame(self.root)
+        self.frame.pack()
+        player_choices = ['Mobility Player', 'Positional Player', 'Random Player', 'MCTS Player']
+        board_choices = ['6', '8']
+        variable_player = tk.StringVar(root)
+        variable_player.set('MCTS Player')
+        variable_board = tk.StringVar(root)
+        variable_board.set('8')
+        tk.Label(self.frame, text='Reversi').pack()
+        tk.Button(self.frame, text='start game', command=self.start_game).pack()
+        tk.OptionMenu(self.frame, variable_player, *player_choices, command=self.set_player).pack()
+        tk.OptionMenu(self.frame, variable_board, *board_choices, command=self.set_board).pack()
+        self.page_1 = None
+        self.player = None
+        self.boardsize = None
+
+
+    def main_page(self):
+        self.frame.pack()
+
+    def start_game(self):
+        if self.player is not None and self.boardsize is not None:
+            self.frame.pack_forget()
+            self.page_1 = ReversiGUI(self.root, size=self.boardsize)
+            self.page_1.start_page()
+            self.page_1.run_game(GUIPlayer(), self.player, self.boardsize)
+        else:
+            print('please select a player and/or a board size')
+
+    def set_player(self, value):
+        if value == 'Mobility Player':
+            self.player = MobilityPlayer(3)
+        elif value == 'Positional Player':
+            self.player = PositionalPlayer(3)
+        elif value == 'Random Player':
+            self.player = RandomPlayer()
+        else:
+            self.player = MCTSTimeSavingPlayer(100, 8)
+
+    def set_board(self, value):
+        if value == '8':
+            self.boardsize = 8
+        else:
+            self.boardsize = 6
+
+
 
 if __name__ == '__main__':
+    # root = tk.Tk()
+    # gui = ReversiGUI(root, 8)
+    # # gui.run_game(RandomPlayer(), RandomPlayer())
+    # # gui.run_game(GUIPlayer(), RandomPlayer())
+    # root.mainloop()
     root = tk.Tk()
-    gui = ReversiGUI(root, 8)
-    # gui.run_game(RandomPlayer(), RandomPlayer())
-    # gui.run_game(GUIPlayer(), RandomPlayer())
+    app = GameStartScreen(root)
     root.mainloop()
+    # run this file to see the current game starting screen, it's a bit crude right now
