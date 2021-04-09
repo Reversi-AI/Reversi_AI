@@ -133,7 +133,7 @@ class MCTSTree:
         if self._subtrees == []:
             return (self, path)
         else:
-            n_total = self.get_total_simulation_number()
+            n_total = sum(subtree.get_total_simulation_number() for subtree in self._subtrees)
 
             max_ucb_value_so_far = -math.inf
             max_ucb_subtree_so_far = None
@@ -238,7 +238,7 @@ class MCTSTree:
             weights = []
             for move in moves:
                 if len(game_copy.simulate_move(move).get_valid_moves()) < len(moves):
-                    weights.append(3)
+                    weights.append(2)
                 else:
                     weights.append(1)
             selected_move = random.choices(moves, weights)[0]
