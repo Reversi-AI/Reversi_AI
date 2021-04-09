@@ -76,11 +76,13 @@ class MCTSTree:
 
     def get_most_confident_move(self) -> str:
         """Return the move of the subtree that has been simulated for the most number of time
+        and the highest win rate
 
         Return the leftmost one if tie
         """
-        most_simulated = max(self._subtrees, key=lambda subtree: sum(subtree.simulations.values()))
-        return most_simulated.move
+        best_subtree = max(self._subtrees,
+                           key=lambda subtree: subtree.get_total_simulation_number())
+        return best_subtree.move
 
     def get_total_simulation_number(self) -> int:
         """Return the number of simulation run on this node"""
@@ -218,26 +220,6 @@ class MCTSTree:
             return s
 
 
-def export_tree(tree: MCTSTree, path: str) -> None:
-    """Export the given tree to an external writable file
-
-    :param tree: the tree to be saved
-    :param path: the path to the export file
-    """
-    with open(path, 'wb') as f:
-        pickle.dump(tree, f)
-
-
-def load_tree(path: str) -> MCTSTree:
-    """Load the given byte encoded file to a MCTSTree object
-
-    :param path: the path to the loaded file
-    """
-    with open(path, 'rb') as f:
-        tree = pickle.load(f)
-    return tree
-
-
 class MCTSRoundPlayer(Player):
     """A Reversi AI player who makes decisions with MCTS"""
     # Private Instance Attributes:
@@ -283,7 +265,8 @@ class MCTSRoundPlayer(Player):
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
-            self._tree = self._tree.find_subtree_by_move(previous_move)
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
@@ -342,7 +325,8 @@ class MCTSTimerPlayer(Player):
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
-            self._tree = self._tree.find_subtree_by_move(previous_move)
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
@@ -418,21 +402,120 @@ class MCTSTimeSavingPlayer(Player):
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
-            self._tree = self._tree.find_subtree_by_move(previous_move)
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
         runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
+
         while time.time() - time_start < self.time_limit and runs_so_far < self.n:
             self._tree.mcts_round(self._c)
             runs_so_far += 1
 
-        # update tree with the decided move
-
         # need to wait a bit if the mcts went by TOO fast
         if time.time() - time_start < 0.5:
             time.sleep(0.5)
+
+        # update tree with the decided move
         move = self._tree.get_most_confident_move()
         self._tree = self._tree.find_subtree_by_move(move)
         return move
+
+
+# These functions are for training the decision tree for MCTS players
+def export_tree(tree: MCTSTree, path: str) -> None:
+    """Export the given tree to an external writable file
+
+    :param tree: the tree to be saved
+    :param path: the path to the export file
+    """
+    with open(path, 'wb') as f:
+        pickle.dump(tree, f)
+
+
+def load_tree(path: str) -> MCTSTree:
+    """Load the given byte encoded file to a MCTSTree object
+
+    :param path: the path to the loaded file
+    """
+    with open(path, 'rb') as f:
+        tree = pickle.load(f)
+    return tree
+
+
+def mcts_train(n: int, game_size: int, verbose=False) -> None:
+    """Update the corresponding mcts_tree file by playing multiple games"""
+    tree_file_path = f'data/mcts_tree_{game_size}'
+    loaded_tree_1 = load_tree(tree_file_path)
+    loaded_tree_2 = load_tree(tree_file_path)
+
+    result = {'p1': 0, 'p2': 0}
+    for i in range(n):
+        player_1 = MCTSRoundPlayer(100, loaded_tree_1)
+        player_2 = MCTSRoundPlayer(100, loaded_tree_2)
+
+        if random.randint(0, 1):
+            print(f'Game {i + 1} | p1 as {BLACK}, p2 as {WHITE} | ', end='')
+            winner = run_game(player_1, player_2, game_size, verbose=verbose)
+            if winner == BLACK:
+                result['p1'] += 1
+                print(f'Winner: p1')
+            elif winner == WHITE:
+                result['p2'] += 1
+                print(f'Winner: p2')
+            else:  # Draw
+                result['p1'] += 0.5
+                result['p2'] += 0.5
+                print(f'Draw')
+        else:
+            print(f'Game {i + 1} | p2 as {BLACK}, p1 as {WHITE} | ', end='')
+            winner = run_game(player_2, player_1, game_size, verbose=verbose)
+            if winner == BLACK:
+                result['p2'] += 1
+                print(f'Winner: p2')
+            elif winner == WHITE:
+                result['p1'] += 1
+                print(f'Winner: p1')
+            else:  # Draw
+                result['p1'] += 0.5
+                result['p2'] += 0.5
+                print(f'Draw')
+
+    if result['p1'] > result['p2']:
+        export_tree(loaded_tree_1, tree_file_path)
+    else:
+        export_tree(loaded_tree_2, tree_file_path)
+
+
+def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> str:
+    """Run a Reversi game between the two given players.
+    Return the winner and list of moves made in the game.
+    """
+    game = ReversiGame(size)
+
+    previous_move = None
+    current_player = black
+    if verbose:
+        game.print_game()
+
+    while game.get_winner() is None:
+        previous_move = current_player.make_move(game, previous_move)
+
+        game.make_move(previous_move)
+
+        if verbose:
+            game.print_game()
+
+        if current_player is black:
+            current_player = white
+        else:
+            current_player = black
+
+    return game.get_winner()
+
+
+if __name__ == '__main__':
+    for _ in range(10):
+        mcts_train(10, 8)
