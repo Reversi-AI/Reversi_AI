@@ -158,7 +158,16 @@ class MCTSTree:
         :param c: the exploration parameter
         :param n_total: the total number of simulations run by the parent node
         """
-        w = self.simulations[side] + 0.5 * self.simulations['Draw']
+        if side == BLACK:
+            opposite = WHITE
+        else:
+            opposite = BLACK
+
+        if self._game_after_move.get_current_player() != side:  # player's move
+            w = self.simulations[side] + 0.5 * self.simulations['Draw']
+        else:  # opponent's move
+            w = self.simulations[opposite] + 0.5 * self.simulations['Draw']
+
         n = self.get_total_simulation_number()
         return w / n + c * math.sqrt(math.log(n_total) / n)
 
@@ -365,7 +374,7 @@ class MCTSTimeSavingPlayer(Player):
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
 
-    def __init__(self, n: Union[int, float], time_limit: Union[int, float],
+    def __init__(self, n: Union[int, float] = 500, time_limit: Union[int, float] = 15,
                  tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and other parameters
 
@@ -395,10 +404,15 @@ class MCTSTimeSavingPlayer(Player):
         :return: a move to be made
         """
         if self._tree is None:  # initialize a tree if there is no tree
-            if previous_move is None:
-                self._tree = MCTSTree(START_MOVE, game)
+            side = game.get_current_player()
+            if side == BLACK:
+                self._tree = load_tree(f'data/mcts_tree_{game.get_size()}_black')
             else:
-                self._tree = MCTSTree(previous_move, game)
+                self._tree = load_tree(f'data/mcts_tree_{game.get_size()}_white')
+
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
+
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
@@ -467,8 +481,6 @@ def mcts_train(n_games: int, game_size: int, mcts_rounds: int, verbose=False) ->
             loaded_tree_black = black_tree_copy
         elif winner == WHITE:
             loaded_tree_white = white_tree_copy
-        else:
-            loaded_tree_black, loaded_tree_white = black_tree_copy, white_tree_copy
 
     export_tree(loaded_tree_black, tree_file_path_black)
     export_tree(loaded_tree_white, tree_file_path_white)
