@@ -447,46 +447,20 @@ def load_tree(path: str) -> MCTSTree:
 
 def mcts_train(n: int, game_size: int, verbose=False) -> None:
     """Update the corresponding mcts_tree file by playing multiple games"""
-    tree_file_path = f'data/mcts_tree_{game_size}'
-    loaded_tree_1 = load_tree(tree_file_path)
-    loaded_tree_2 = load_tree(tree_file_path)
+    tree_file_path_black = f'data/mcts_tree_{game_size}_black'
+    loaded_tree_black = load_tree(tree_file_path_black)
 
-    result = {'p1': 0, 'p2': 0}
+    tree_file_path_white = f'data/mcts_tree_{game_size}_white'
+    loaded_tree_white = load_tree(tree_file_path_white)
+
     for i in range(n):
-        player_1 = MCTSRoundPlayer(100, loaded_tree_1)
-        player_2 = MCTSRoundPlayer(100, loaded_tree_2)
+        black = MCTSRoundPlayer(100, loaded_tree_black)
+        white = MCTSRoundPlayer(100, loaded_tree_white)
+        print(f'Running game {i + 1}/{n}')
+        run_game(black, white, game_size, verbose)
 
-        if random.randint(0, 1):
-            print(f'Game {i + 1} | p1 as {BLACK}, p2 as {WHITE} | ', end='')
-            winner = run_game(player_1, player_2, game_size, verbose=verbose)
-            if winner == BLACK:
-                result['p1'] += 1
-                print(f'Winner: p1')
-            elif winner == WHITE:
-                result['p2'] += 1
-                print(f'Winner: p2')
-            else:  # Draw
-                result['p1'] += 0.5
-                result['p2'] += 0.5
-                print(f'Draw')
-        else:
-            print(f'Game {i + 1} | p2 as {BLACK}, p1 as {WHITE} | ', end='')
-            winner = run_game(player_2, player_1, game_size, verbose=verbose)
-            if winner == BLACK:
-                result['p2'] += 1
-                print(f'Winner: p2')
-            elif winner == WHITE:
-                result['p1'] += 1
-                print(f'Winner: p1')
-            else:  # Draw
-                result['p1'] += 0.5
-                result['p2'] += 0.5
-                print(f'Draw')
-
-    if result['p1'] > result['p2']:
-        export_tree(loaded_tree_1, tree_file_path)
-    else:
-        export_tree(loaded_tree_2, tree_file_path)
+    export_tree(loaded_tree_black, tree_file_path_black)
+    export_tree(loaded_tree_white, tree_file_path_white)
 
 
 def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> str:
@@ -518,4 +492,4 @@ def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> 
 
 if __name__ == '__main__':
     for _ in range(10):
-        mcts_train(10, 8)
+        mcts_train(10, 8, verbose=True)
