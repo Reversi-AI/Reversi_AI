@@ -18,6 +18,15 @@ We will focus on two algorithms in the project:
     
 - Monte Carlo Tree Search (MCTS): An heuristic search algorithm for decision making used in complex
   engines like AlphaGo
+
+## Getting started
+
+These instructions will get you a copy of the project up and running on your local machine for
+development and testing purposes.
+
+The project is built on python 3.9. Please install python 3.9 with tkinter installation
+
+Please install all python libraries in requirement.txt.
   
 ## Authors
 - Haoze Deng
