@@ -261,7 +261,7 @@ class GameStartScreen:
         elif value == 'Random Player':
             self.player = RandomPlayer()
         else:
-            self.player = MCTSTimeSavingPlayer(100, 8)
+            self.player = MCTSTimeSavingPlayer(500, 15)
 
     def set_board(self, value) -> None:
         """drop down menu selecting board size"""
