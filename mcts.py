@@ -17,14 +17,14 @@ Authors:
 This file is Copyright (c) 2021.
 """
 from __future__ import annotations
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 import copy
 import random
 import math
 import pickle
 import time
 
-from constants import BLACK, WHITE, START_MOVE
+from constants import BLACK, WHITE, START_MOVE, BOARD_POSITION_8, BOARD_POSITION_6
 from reversi import ReversiGame, Player
 
 
@@ -88,11 +88,15 @@ class MCTSTree:
         """Return the number of simulation run on this node"""
         return sum(self.simulations.values())
 
-    def mcts_round(self, c: Union[int, float]) -> None:
+    def mcts_round(self, c: Union[int, float], rollout_policy: Optional[Callable] = None) -> None:
         """Perform one round of MCTS with the given exploration parameter
 
         :param c: the exploration parameter
+        :param rollout_policy: the function for the rollout process
         """
+        if rollout_policy is None:
+            rollout_policy = MCTSTree.rollout_random
+
         side = self._game_after_move.get_current_player()
 
         # selection
@@ -109,7 +113,7 @@ class MCTSTree:
                 path.append(selected_leaf)
 
             # rollout on the selected node and update the path with the result
-            rollout_winner = selected_leaf.rollout()
+            rollout_winner = rollout_policy(selected_leaf)
             self.update(rollout_winner, path)
         else:  # update the path directly when the node is terminal
             self.update(selected_leaf._game_after_move.get_winner(), path)
@@ -184,12 +188,61 @@ class MCTSTree:
             new_subtree = MCTSTree(move, new_game_state)
             self._subtrees.append(new_subtree)
 
-    def rollout(self) -> str:
-        """Rollout process of the MCTS. Return the winner of the rollout"""
+    def rollout_random(self) -> str:
+        """Rollout process of the MCTS. Moves are randomly chosen.
+        Return the winner of the rollout"""
         game_copy = copy.deepcopy(self._game_after_move)
+
+        # rollout
         while game_copy.get_winner() is None:
-            random_move = random.choice(game_copy.get_valid_moves())
-            game_copy.make_move(random_move)
+            selected_move = random.choice(game_copy.get_valid_moves())
+            game_copy.make_move(selected_move)
+        return game_copy.get_winner()
+
+    def rollout_position(self) -> str:
+        """Rollout process of the MCTS. Moves are chosen based on positional strategy.
+        Return the winner of the rollout"""
+        game_copy = copy.deepcopy(self._game_after_move)
+
+        # rollout
+        while game_copy.get_winner() is None:
+            moves = game_copy.get_valid_moves()
+
+            # weight: corner > edges > center > buffers
+            if game_copy.get_size() == 8:
+                positions = BOARD_POSITION_8
+            else:
+                positions = BOARD_POSITION_6
+
+            weights_so_far = []
+            for move in moves:
+                if move in positions['corners']:
+                    weights_so_far.append(8)
+                elif move in positions['edges']:
+                    weights_so_far.append(6)
+                elif move not in positions['buffers']:
+                    weights_so_far.append(4)
+                else:
+                    weights_so_far.append(2)
+
+            selected_move = random.choices(moves, weights_so_far)[0]
+            game_copy.make_move(selected_move)
+        return game_copy.get_winner()
+
+    def rollout_mobility(self) -> str:
+        """Rollout process of the MCTS. Moves are chosen based on mobility strategy.
+        Return the winner of the rollout"""
+        game_copy = copy.deepcopy(self._game_after_move)
+
+        # rollout
+        while game_copy.get_winner() is None:
+            moves = game_copy.get_valid_moves()
+            # the game state after the move should have the least move
+            # which means few moves are opponent
+            weights = [64 - len(game_copy.simulate_move(move).get_valid_moves())
+                       for move in moves]
+            selected_move = random.choices(moves, weights)[0]
+            game_copy.make_move(selected_move)
         return game_copy.get_winner()
 
     def update(self, winner: str, path: list[MCTSTree]) -> None:
@@ -235,12 +288,14 @@ class MCTSRoundPlayer(Player):
     #     - _round: The number of round of MCTS performed on each move
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
+    #     - _rollout_policy: The rollout function for the MCTS algorithm
     _n: int
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
+    _rollout_policy: Callable
 
     def __init__(self, n: Union[int, float], tree: Optional[MCTSTree] = None,
-                 c: Union[float, int] = math.sqrt(2)) -> None:
+                 c: Union[float, int] = math.sqrt(2), rollout: Optional[Callable] = None) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param n: round of MCTS run per move
@@ -250,6 +305,9 @@ class MCTSRoundPlayer(Player):
         self._n = n
         self._tree = tree
         self._c = c
+        if rollout is None:
+            rollout = MCTSTree.rollout_random
+        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -281,7 +339,7 @@ class MCTSRoundPlayer(Player):
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         for _ in range(self._n):
-            self._tree.mcts_round(self._c)
+            self._tree.mcts_round(self._c, self._rollout_policy)
 
         # update tree with the decided move
         move = self._tree.get_most_confident_move()
@@ -295,12 +353,14 @@ class MCTSTimerPlayer(Player):
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
     #     - _time_limit: The time limit for each move
+    #     - _rollout_policy: The rollout function for the MCTS algorithm
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
     _time_limit: Union[int, float]
+    _rollout_policy: Callable
 
     def __init__(self, time_limit: Union[int, float], tree: Optional[MCTSTree] = None,
-                 c: Union[float, int] = math.sqrt(2)) -> None:
+                 c: Union[float, int] = math.sqrt(2), rollout: Optional[Callable] = None) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param time_limit: time limit per move in seconds
@@ -310,6 +370,9 @@ class MCTSTimerPlayer(Player):
         self._time_limit = time_limit
         self._tree = tree
         self._c = c
+        if rollout is None:
+            rollout = MCTSTree.rollout_random
+        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -371,11 +434,14 @@ class MCTSTimeSavingPlayer(Player):
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
     #     - _time_limit: The time limit for each move
+    #     - _rollout_policy: The rollout function for the MCTS algorithm
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
+    _rollout_policy: Callable
 
-    def __init__(self, n: Union[int, float] = 500, time_limit: Union[int, float] = 15,
-                 tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2)) -> None:
+    def __init__(self, n: Union[int, float], time_limit: Union[int, float],
+                 tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2),
+                 rollout: Optional[Callable] = None) -> None:
         """Initialize this player with the time limit per move and other parameters
 
         :param n: the number of MCTS runs per turn
@@ -387,6 +453,9 @@ class MCTSTimeSavingPlayer(Player):
         self.time_limit = time_limit
         self._tree = tree
         self._c = c
+        if rollout is None:
+            rollout = MCTSTree.rollout_random
+        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -404,14 +473,10 @@ class MCTSTimeSavingPlayer(Player):
         :return: a move to be made
         """
         if self._tree is None:  # initialize a tree if there is no tree
-            side = game.get_current_player()
-            if side == BLACK:
-                self._tree = load_tree(f'data/mcts_tree_{game.get_size()}_black')
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, ReversiGame(game.get_size()))
             else:
-                self._tree = load_tree(f'data/mcts_tree_{game.get_size()}_white')
-
-            if previous_move is not None:
-                self._tree = self._tree.find_subtree_by_move(previous_move)
+                self._tree = MCTSTree(previous_move, game)
 
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
@@ -424,13 +489,10 @@ class MCTSTimeSavingPlayer(Player):
         runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
 
-        while time.time() - time_start < self.time_limit and runs_so_far < self.n:
-            self._tree.mcts_round(self._c)
+        # at least run 1 second, ends when exceeds time limit or finishes n runs
+        while not (time.time() - time_start > max(self.time_limit, 1) or runs_so_far == self.n):
+            self._tree.mcts_round(self._c, self._rollout_policy)
             runs_so_far += 1
-
-        # need to wait a bit if the mcts went by TOO fast
-        if time.time() - time_start < 0.5:
-            time.sleep(0.5)
 
         # update tree with the decided move
         move = self._tree.get_most_confident_move()
@@ -513,6 +575,6 @@ def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> 
     return game.get_winner()
 
 
-if __name__ == '__main__':
-    for _ in range(10):
-        mcts_train(n_games=10, game_size=8, mcts_rounds=500, verbose=True)
+# if __name__ == '__main__':
+#     for _ in range(10):
+#         mcts_train(n_games=10, game_size=8, mcts_rounds=500, verbose=True)
