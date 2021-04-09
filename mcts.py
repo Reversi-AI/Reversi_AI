@@ -217,13 +217,9 @@ class MCTSTree:
             weights_so_far = []
             for move in moves:
                 if move in positions['corners']:
-                    weights_so_far.append(8)
-                elif move in positions['edges']:
-                    weights_so_far.append(6)
-                elif move not in positions['buffers']:
-                    weights_so_far.append(4)
+                    weights_so_far.append(3)
                 else:
-                    weights_so_far.append(2)
+                    weights_so_far.append(1)
 
             selected_move = random.choices(moves, weights_so_far)[0]
             game_copy.make_move(selected_move)
@@ -239,8 +235,12 @@ class MCTSTree:
             moves = game_copy.get_valid_moves()
             # the game state after the move should have the least move
             # which means few moves are opponent
-            weights = [64 - len(game_copy.simulate_move(move).get_valid_moves())
-                       for move in moves]
+            weights = []
+            for move in moves:
+                if len(game_copy.simulate_move(move).get_valid_moves()) < 4:
+                    weights.append(3)
+                else:
+                    weights.append(1)
             selected_move = random.choices(moves, weights)[0]
             game_copy.make_move(selected_move)
         return game_copy.get_winner()
