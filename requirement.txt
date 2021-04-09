@@ -1,0 +1,10 @@
+# Python libraries used in this project
+
+# Testing and code checking
+python-ta
+
+# Graphics and data visualization
+ploty
+
+# GUI
+pygame
