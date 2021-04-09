@@ -115,8 +115,9 @@ class MCTSTree:
             # rollout on the selected node and update the path with the result
             rollout_winner = rollout_policy(selected_leaf)
             self.update(rollout_winner, path)
-        else:  # update the path directly when the node is terminal
-            self.update(selected_leaf._game_after_move.get_winner(), path)
+        else:  # update the path directly and multiple times when the node is terminal
+            for _ in range(3):
+                self.update(selected_leaf._game_after_move.get_winner(), path)
 
     def select(self, side: str, c: Union[int, float], path: list) \
             -> tuple[MCTSTree, list[MCTSTree]]:
@@ -295,7 +296,7 @@ class MCTSRoundPlayer(Player):
     _rollout_policy: Callable
 
     def __init__(self, n: Union[int, float], tree: Optional[MCTSTree] = None,
-                 c: Union[float, int] = math.sqrt(2), rollout: Optional[Callable] = None) -> None:
+                 c: Union[float, int] = 2, rollout: Optional[Callable] = None) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param n: round of MCTS run per move
@@ -326,17 +327,17 @@ class MCTSRoundPlayer(Player):
         """
         if self._tree is None:  # initialize a tree if there is no tree
             if previous_move is None:
-                self._tree = MCTSTree(START_MOVE, game)
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
             else:
-                self._tree = MCTSTree(previous_move, game)
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
             if previous_move is not None:
                 self._tree = self._tree.find_subtree_by_move(previous_move)
 
-        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
-        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
+        assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         for _ in range(self._n):
             self._tree.mcts_round(self._c, self._rollout_policy)
@@ -391,9 +392,9 @@ class MCTSTimerPlayer(Player):
         """
         if self._tree is None:  # initialize a tree if there is no tree
             if previous_move is None:
-                self._tree = MCTSTree(START_MOVE, game)
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
             else:
-                self._tree = MCTSTree(previous_move, game)
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
                 self._tree.expand()
@@ -474,9 +475,9 @@ class MCTSTimeSavingPlayer(Player):
         """
         if self._tree is None:  # initialize a tree if there is no tree
             if previous_move is None:
-                self._tree = MCTSTree(START_MOVE, ReversiGame(game.get_size()))
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
             else:
-                self._tree = MCTSTree(previous_move, game)
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
 
         else:  # update tree with previous move if there is a tree
             if len(self._tree.get_subtrees()) == 0:
