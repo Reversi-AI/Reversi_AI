@@ -445,7 +445,7 @@ def load_tree(path: str) -> MCTSTree:
     return tree
 
 
-def mcts_train(n: int, game_size: int, verbose=False) -> None:
+def mcts_train(n_games: int, game_size: int, mcts_rounds: int, verbose=False) -> None:
     """Update the corresponding mcts_tree file by playing multiple games"""
     tree_file_path_black = f'data/mcts_tree_{game_size}_black'
     loaded_tree_black = load_tree(tree_file_path_black)
@@ -453,11 +453,22 @@ def mcts_train(n: int, game_size: int, verbose=False) -> None:
     tree_file_path_white = f'data/mcts_tree_{game_size}_white'
     loaded_tree_white = load_tree(tree_file_path_white)
 
-    for i in range(n):
-        black = MCTSRoundPlayer(100, loaded_tree_black)
-        white = MCTSRoundPlayer(100, loaded_tree_white)
-        print(f'Running game {i + 1}/{n}')
-        run_game(black, white, game_size, verbose)
+    for i in range(n_games):
+        black_tree_copy = copy.deepcopy(loaded_tree_black)
+        white_tree_copy = copy.deepcopy(loaded_tree_white)
+
+        black = MCTSRoundPlayer(mcts_rounds, black_tree_copy)
+        white = MCTSRoundPlayer(mcts_rounds, white_tree_copy)
+        print(f'Running game {i + 1}/{n_games}')
+        winner = run_game(black, white, game_size, verbose)
+        print(f'Game {i + 1} winner: {winner}')
+
+        if winner == BLACK:
+            loaded_tree_black = black_tree_copy
+        elif winner == WHITE:
+            loaded_tree_white = white_tree_copy
+        else:
+            loaded_tree_black, loaded_tree_white = black_tree_copy, white_tree_copy
 
     export_tree(loaded_tree_black, tree_file_path_black)
     export_tree(loaded_tree_white, tree_file_path_white)
@@ -492,4 +503,4 @@ def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> 
 
 if __name__ == '__main__':
     for _ in range(10):
-        mcts_train(10, 8, verbose=True)
+        mcts_train(n_games=10, game_size=8, mcts_rounds=500, verbose=True)
