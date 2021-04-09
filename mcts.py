@@ -233,11 +233,11 @@ class MCTSTree:
         # rollout
         while game_copy.get_winner() is None:
             moves = game_copy.get_valid_moves()
-            # the game state after the move should have the least move
-            # which means few moves are opponent
+            # the game state after the move should have the less move
+            # which means fewer moves are opponent
             weights = []
             for move in moves:
-                if len(game_copy.simulate_move(move).get_valid_moves()) < 4:
+                if len(game_copy.simulate_move(move).get_valid_moves()) < len(moves):
                     weights.append(3)
                 else:
                     weights.append(1)
