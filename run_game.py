@@ -11,6 +11,11 @@ Authors:
     - Alexander Nicholas Conway
 This file is Copyright (c) 2021.
 """
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+import tkinter as tk
+from tk_gui import ReversiGUI
 import copy
 import time
 
@@ -18,10 +23,6 @@ from constants import BLACK, WHITE, DEFAULT_FPS
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
-import tkinter as tk
-from tk_gui import ReversiGUI
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
