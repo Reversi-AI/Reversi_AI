@@ -134,7 +134,7 @@ class MCTSTree:
         if self._subtrees == []:
             return (self, path)
         else:
-            n_total = sum(subtree.get_total_simulation_number() for subtree in self._subtrees)
+            n_total = self.get_total_simulation_number()
 
             max_ucb_value_so_far = -math.inf
             max_ucb_subtree_so_far = None
@@ -169,9 +169,9 @@ class MCTSTree:
             opposite = BLACK
 
         if self._game_after_move.get_current_player() != side:  # player's move
-            w = self.simulations[side] + 0.5 * self.simulations['Draw']
+            w = self.simulations[side]
         else:  # opponent's move
-            w = self.simulations[opposite] + 0.5 * self.simulations['Draw']
+            w = self.simulations[opposite]
 
         n = self.get_total_simulation_number()
         return w / n + c * math.sqrt(math.log(n_total) / n)
@@ -547,33 +547,6 @@ def mcts_train(n_games: int, game_size: int, mcts_rounds: int, verbose=False) ->
 
     export_tree(loaded_tree_black, tree_file_path_black)
     export_tree(loaded_tree_white, tree_file_path_white)
-
-
-def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> str:
-    """Run a Reversi game between the two given players.
-    Return the winner and list of moves made in the game.
-    """
-    game = ReversiGame(size)
-
-    previous_move = None
-    current_player = black
-    if verbose:
-        game.print_game()
-
-    while game.get_winner() is None:
-        previous_move = current_player.make_move(game, previous_move)
-
-        game.make_move(previous_move)
-
-        if verbose:
-            game.print_game()
-
-        if current_player is black:
-            current_player = white
-        else:
-            current_player = black
-
-    return game.get_winner()
 
 
 # if __name__ == '__main__':
