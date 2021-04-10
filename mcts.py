@@ -134,7 +134,7 @@ class MCTSTree:
         if self._subtrees == []:
             return (self, path)
         else:
-            n_total = self.get_total_simulation_number()
+            n_total = sum(subtree.get_total_simulation_number() for subtree in self._subtrees)
 
             max_ucb_value_so_far = -math.inf
             max_ucb_subtree_so_far = None
@@ -143,7 +143,7 @@ class MCTSTree:
                     max_ucb_subtree_so_far = subtree
                     break
                 else:
-                    if subtree._uct(side, c, n_total) >= max_ucb_value_so_far:
+                    if subtree._uct(side, c, n_total) > max_ucb_value_so_far:
                         max_ucb_subtree_so_far = subtree
                         max_ucb_value_so_far = subtree._uct(side, c, n_total)
 
@@ -169,9 +169,9 @@ class MCTSTree:
             opposite = BLACK
 
         if self._game_after_move.get_current_player() != side:  # player's move
-            w = self.simulations[side]
+            w = self.simulations[side] + 0.5 * self.simulations['Draw']
         else:  # opponent's move
-            w = self.simulations[opposite]
+            w = self.simulations[opposite] + 0.5 * self.simulations['Draw']
 
         n = self.get_total_simulation_number()
         return w / n + c * math.sqrt(math.log(n_total) / n)
@@ -291,18 +291,20 @@ class MCTSRoundPlayer(Player):
     #     - _c: The exploration parameter for the MCTS algorithm
     #     - _rollout_policy: The rollout function for the MCTS algorithm
     _n: int
+    _tree: Optional[MCTSTree]
     _c: Union[float, int]
     _rollout_policy: Callable
 
-    def __init__(self, n: Union[int, float],
-                 c: Union[float, int] = math.sqrt(2), rollout: Optional[Callable] = None) -> None:
+    def __init__(self, n: Union[int, float], tree: Optional[MCTSTree] = None,
+                 c: Union[float, int] = 2, rollout: Optional[Callable] = None) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param n: round of MCTS run per move
+        :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
-        :param rollout: the rollout function for the tree search
         """
         self._n = n
+        self._tree = tree
         self._c = c
         if rollout is None:
             rollout = MCTSTree.rollout_random
@@ -323,19 +325,26 @@ class MCTSRoundPlayer(Player):
         have been made
         :return: a move to be made
         """
-        if previous_move is None:
-            current_tree = MCTSTree(START_MOVE, copy.deepcopy(game))
-        else:
-            current_tree = MCTSTree(previous_move, copy.deepcopy(game))
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
+            else:
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
-        assert current_tree.get_game_after_move().get_game_board() == game.get_game_board()
-        assert current_tree.get_game_after_move().get_current_player() == game.get_current_player()
+        assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         for _ in range(self._n):
-            current_tree.mcts_round(self._c, self._rollout_policy)
+            self._tree.mcts_round(self._c, self._rollout_policy)
 
         # update tree with the decided move
-        move = current_tree.get_most_confident_move()
+        move = self._tree.get_most_confident_move()
+        self._tree = self._tree.find_subtree_by_move(move)
         return move
 
 
@@ -381,20 +390,27 @@ class MCTSTimerPlayer(Player):
         have been made
         :return: a move to be made
         """
-        if previous_move is None:
-            current_tree = MCTSTree(START_MOVE, copy.deepcopy(game))
-        else:
-            current_tree = MCTSTree(previous_move, copy.deepcopy(game))
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
+            else:
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
-        assert current_tree.get_game_after_move().get_game_board() == game.get_game_board()
-        assert current_tree.get_game_after_move().get_current_player() == game.get_current_player()
+        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         time_start = time.time()
         while time.time() - time_start < self._time_limit:
-            current_tree.mcts_round(self._c)
+            self._tree.mcts_round(self._c)
 
         # update tree with the decided move
-        move = current_tree.get_most_confident_move()
+        move = self._tree.get_most_confident_move()
+        self._tree = self._tree.find_subtree_by_move(move)
         return move
 
 
@@ -457,35 +473,35 @@ class MCTSTimeSavingPlayer(Player):
         have been made
         :return: a move to be made
         """
-        if previous_move is None:
-            current_tree = MCTSTree(START_MOVE, copy.deepcopy(game))
-        else:
-            current_tree = MCTSTree(previous_move, copy.deepcopy(game))
+        if self._tree is None:  # initialize a tree if there is no tree
+            if previous_move is None:
+                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
+            else:
+                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
 
-        assert current_tree.get_game_after_move().get_game_board() == game.get_game_board()
-        assert current_tree.get_game_after_move().get_current_player() == game.get_current_player()
+        else:  # update tree with previous move if there is a tree
+            if len(self._tree.get_subtrees()) == 0:
+                self._tree.expand()
+            if previous_move is not None:
+                self._tree = self._tree.find_subtree_by_move(previous_move)
 
-        # return move if there is only one move
-        if len(game.get_valid_moves()) == 1:
-            return game.get_valid_moves()[0]
-
+        # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
+        # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
         runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
 
         # at least run 1 second, ends when exceeds time limit or finishes n runs
         while not (time.time() - time_start > max(self.time_limit, 1) or runs_so_far == self.n):
-            current_tree.mcts_round(self._c, self._rollout_policy)
+            self._tree.mcts_round(self._c, self._rollout_policy)
             runs_so_far += 1
 
         # update tree with the decided move
-        move = current_tree.get_most_confident_move()
+        move = self._tree.get_most_confident_move()
+        self._tree = self._tree.find_subtree_by_move(move)
         return move
 
 
-################################################################################
-# The following functions are for exporting the decision trees for MCTS players
-################################################################################
-
+# These functions are for training the decision tree for MCTS players
 def export_tree(tree: MCTSTree, path: str) -> None:
     """Export the given tree to an external writable file
 
@@ -504,6 +520,60 @@ def load_tree(path: str) -> MCTSTree:
     with open(path, 'rb') as f:
         tree = pickle.load(f)
     return tree
+
+
+def mcts_train(n_games: int, game_size: int, mcts_rounds: int, verbose=False) -> None:
+    """Update the corresponding mcts_tree file by playing multiple games"""
+    tree_file_path_black = f'data/mcts_tree_{game_size}_black'
+    loaded_tree_black = load_tree(tree_file_path_black)
+
+    tree_file_path_white = f'data/mcts_tree_{game_size}_white'
+    loaded_tree_white = load_tree(tree_file_path_white)
+
+    for i in range(n_games):
+        black_tree_copy = copy.deepcopy(loaded_tree_black)
+        white_tree_copy = copy.deepcopy(loaded_tree_white)
+
+        black = MCTSRoundPlayer(mcts_rounds, black_tree_copy)
+        white = MCTSRoundPlayer(mcts_rounds, white_tree_copy)
+        print(f'Running game {i + 1}/{n_games}')
+        winner = run_game(black, white, game_size, verbose)
+        print(f'Game {i + 1} winner: {winner}')
+
+        if winner == BLACK:
+            loaded_tree_black = black_tree_copy
+        elif winner == WHITE:
+            loaded_tree_white = white_tree_copy
+
+    export_tree(loaded_tree_black, tree_file_path_black)
+    export_tree(loaded_tree_white, tree_file_path_white)
+
+
+def run_game(black: Player, white: Player, size: int, verbose: bool = False) -> str:
+    """Run a Reversi game between the two given players.
+    Return the winner and list of moves made in the game.
+    """
+    game = ReversiGame(size)
+
+    previous_move = None
+    current_player = black
+    if verbose:
+        game.print_game()
+
+    while game.get_winner() is None:
+        previous_move = current_player.make_move(game, previous_move)
+
+        game.make_move(previous_move)
+
+        if verbose:
+            game.print_game()
+
+        if current_player is black:
+            current_player = white
+        else:
+            current_player = black
+
+    return game.get_winner()
 
 
 # if __name__ == '__main__':

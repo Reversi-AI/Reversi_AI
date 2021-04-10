@@ -22,7 +22,7 @@ import time
 from constants import BLACK, WHITE, DEFAULT_FPS
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
-from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer, MCTSTree
+from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
 
 
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
@@ -164,8 +164,6 @@ if __name__ == '__main__':
     # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
     # test for MCTSPlayer
     # run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
-    # run_game(PositionalPlayer(1), PositionalPlayer(1), 8, True)
-    # run_game(RandomPlayer(), RandomPlayer(), 8, True)
+    # run_game(PositionalPlayer(4), MCTSRoundPlayer(100), 8, True)
     # run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(2, 5), 8)
-    run_game_visual(MCTSTimeSavingPlayer(500, 15, c=0.8, rollout=MCTSTree.rollout_position),
-                    GUIPlayer(), 8)
+    run_game_visual(GUIPlayer(), MCTSTimeSavingPlayer(500, 15), 8)
