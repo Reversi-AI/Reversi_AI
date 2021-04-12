@@ -3,8 +3,9 @@ import time
 
 from mcts import MCTSTimeSavingPlayer
 from minimax import MobilityPlayer, PositionalPlayer
-from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
-from constants import BLACK, WHITE, DEFAULT_FPS
+from minimax_tree import MobilityTreePlayer, PositionalTreePlayer
+from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
+from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
 from typing import Optional
 
 class ReversiGUI:
@@ -145,7 +146,7 @@ class ReversiGUI:
             ycor = event.y // (self.board.winfo_height() / self.game.get_size())
 
             pos = (ycor, xcor)
-            move = _index_to_algebraic(pos)
+            move = index_to_algebraic(pos)
             print(move)
             if move in self.game.get_valid_moves():
                 self.game.make_move(move)

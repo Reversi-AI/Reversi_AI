@@ -26,6 +26,7 @@ from PIL import Image, ImageTk
 from mcts import MCTSTimeSavingPlayer
 from minimax import MobilityPlayer, PositionalPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
+from minimax_tree import MobilityTreePlayer, PositionalTreePlayer, GreedyTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
 from typing import Optional
 
@@ -363,7 +364,6 @@ class GameScreen(tk.Frame):
     _canvas: tk.Canvas
     _click_move: str
     window: VisualReversi
-
 
     def __init__(self, window: VisualReversi, size: int) -> None:
         """initialize gui
