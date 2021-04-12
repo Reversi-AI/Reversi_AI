@@ -146,7 +146,7 @@ class ReversiGUI:
             ycor = event.y // (self.board.winfo_height() / self.game.get_size())
 
             pos = (ycor, xcor)
-            move = _index_to_algebraic(pos)
+            move = index_to_algebraic(pos)
             print(move)
             if move in self.game.get_valid_moves():
                 self.game.make_move(move)
