@@ -421,10 +421,6 @@ class MCTSTimeSavingPlayer(Player):
     or the time reaches the time limit of the move, the player would stop running MCTS and
     make a decision.
 
-    The number of rounds of MCTS run per move is a exponential function of the number of
-    valid moves, which is calculated by a0^n where a0 is a given constant and n is the number
-    of valid moves of the current game state.
-
     Instance Attributes:
         - n: the number of MCTS runs per turn
         - time_limit: the time limit for each move
@@ -488,6 +484,7 @@ class MCTSTimeSavingPlayer(Player):
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
+
         runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
 
@@ -502,7 +499,7 @@ class MCTSTimeSavingPlayer(Player):
         return move
 
 
-# These functions are for training the decision tree for MCTS players
+# These functions are for loading and exporting the decision tree for MCTS players
 def export_tree(tree: MCTSTree, path: str) -> None:
     """Export the given tree to an external writable file
 

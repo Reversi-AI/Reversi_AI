@@ -3,7 +3,7 @@
 Module Description
 ===============================
 
-This module contains three constants which are used for representing pieces on the board.
+This module contains constants which are used for representing pieces on the board.
 
 Copyright and Usage Information
 ===============================
