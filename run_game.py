@@ -165,5 +165,5 @@ if __name__ == '__main__':
     # test for MCTSPlayer
     # run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
     # run_game(PositionalPlayer(4), MCTSRoundPlayer(100), 8, True)
-    # run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(2, 5), 8)
-    run_game_visual(MCTSTimeSavingPlayer(500, 15), GUIPlayer(), 8)
+    run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(500, 15), 8)
+    # run_game_visual(MCTSTimeSavingPlayer(500, 15), GUIPlayer(), 8)

@@ -23,16 +23,12 @@ import pygame
 
 from minimax import MobilityPlayer, PositionalPlayer
 from reversi import RandomPlayer, ReversiGame
-from constants import BLACK, WHITE
+from constants import BLACK, WHITE, INDEX_TO_COL, INDEX_TO_ROW
 
 DEFAULT_DPI = (800, 800)
 DEFAULT_WH_RATIO: float = 1
 BUTTON_SIZE = (280, 55)
 
-_COL_TO_INDEX = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-_INDEX_TO_COL = {i: f for f, i in _COL_TO_INDEX.items()}
-_ROW_TO_INDEX = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7}
-_INDEX_TO_ROW = {i: r for r, i in _ROW_TO_INDEX.items()}
 BOARD_6 = {'a1': (85, 610), 'a2': (85, 500), 'a3': (85, 385), 'a4': (90, 275), 'a5': (90, 165), 'a6': (90, 60),
            'b1': (195, 610), 'b2': (195, 500), 'b3': (195, 385), 'b4': (200, 275), 'b5': (200, 165), 'b6': (200, 60),
            'c1': (300, 610), 'c2': (300, 500), 'c3': (300, 385), 'c4': (305, 275), 'c5': (305, 165), 'c6': (305, 60),
@@ -460,7 +456,7 @@ def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, s
     for row_num in range(0, len(board)):
         for col_num in range(0, len(board)):
             if board[row_num][col_num] == BLACK:
-                pos = _INDEX_TO_COL[col_num] + _INDEX_TO_ROW[row_num]
+                pos = INDEX_TO_COL[col_num] + INDEX_TO_ROW[row_num]
                 if size == 6:
                     coordinates = (BOARD_6[pos][0] + SIDE_6 // 5, BOARD_6[pos][1] + SIDE_6 // 5)
                     game_surface.blit(black_chess6, coordinates)
@@ -468,7 +464,7 @@ def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, s
                     coordinates = (BOARD_8[pos][0] + SIDE_8 // 6, BOARD_8[pos][1] + SIDE_8 // 6)
                     game_surface.blit(black_chess8, coordinates)
             elif board[row_num][col_num] == WHITE:
-                pos = _INDEX_TO_COL[col_num] + _INDEX_TO_ROW[row_num]
+                pos = INDEX_TO_COL[col_num] + INDEX_TO_ROW[row_num]
                 if size == 6:
                     coordinates = (BOARD_6[pos][0] + SIDE_6 // 5, BOARD_6[pos][1] + SIDE_6 // 5)
                     game_surface.blit(white_chess6, coordinates)
