@@ -89,14 +89,11 @@ class MCTSTree:
         """Return the number of simulation run on this node"""
         return sum(self.simulations.values())
 
-    def mcts_round(self, c: Union[int, float], rollout_policy: Optional[Callable] = None) -> None:
+    def mcts_round(self, c: Union[int, float]) -> None:
         """Perform one round of MCTS with the given exploration parameter
 
         :param c: the exploration parameter
-        :param rollout_policy: the function for the rollout process
         """
-        if rollout_policy is None:
-            rollout_policy = MCTSTree.rollout_random
 
         side = self._game_after_move.get_current_player()
 
@@ -114,7 +111,7 @@ class MCTSTree:
                 path.append(selected_leaf)
 
             # rollout on the selected node and update the path with the result
-            rollout_winner = rollout_policy(selected_leaf)
+            rollout_winner = selected_leaf.rollout()
             self.update(rollout_winner, path)
         else:  # update the path directly and multiple times when the node is terminal
             for _ in range(3):
@@ -190,7 +187,7 @@ class MCTSTree:
             new_subtree = MCTSTree(move, new_game_state)
             self._subtrees.append(new_subtree)
 
-    def rollout_random(self) -> str:
+    def rollout(self) -> str:
         """Rollout process of the MCTS. Moves are randomly chosen.
         Return the winner of the rollout"""
         game_copy = copy.deepcopy(self._game_after_move)
@@ -198,52 +195,6 @@ class MCTSTree:
         # rollout
         while game_copy.get_winner() is None:
             selected_move = random.choice(game_copy.get_valid_moves())
-            game_copy.make_move(selected_move)
-        return game_copy.get_winner()
-
-    def rollout_position(self) -> str:
-        """Rollout process of the MCTS. Moves are chosen based on positional strategy.
-        Return the winner of the rollout"""
-        game_copy = copy.deepcopy(self._game_after_move)
-
-        # rollout
-        while game_copy.get_winner() is None:
-            moves = game_copy.get_valid_moves()
-
-            # weight: corner > edges > center > buffers
-            if game_copy.get_size() == 8:
-                positions = BOARD_POSITION_8
-            else:
-                positions = BOARD_POSITION_6
-
-            weights_so_far = []
-            for move in moves:
-                if move in positions['corners']:
-                    weights_so_far.append(3)
-                else:
-                    weights_so_far.append(1)
-
-            selected_move = random.choices(moves, weights_so_far)[0]
-            game_copy.make_move(selected_move)
-        return game_copy.get_winner()
-
-    def rollout_mobility(self) -> str:
-        """Rollout process of the MCTS. Moves are chosen based on mobility strategy.
-        Return the winner of the rollout"""
-        game_copy = copy.deepcopy(self._game_after_move)
-
-        # rollout
-        while game_copy.get_winner() is None:
-            moves = game_copy.get_valid_moves()
-            # the game state after the move should have the less move
-            # which means fewer moves are opponent
-            weights = []
-            for move in moves:
-                if len(game_copy.simulate_move(move).get_valid_moves()) < len(moves):
-                    weights.append(2)
-                else:
-                    weights.append(1)
-            selected_move = random.choices(moves, weights)[0]
             game_copy.make_move(selected_move)
         return game_copy.get_winner()
 
@@ -290,14 +241,12 @@ class MCTSRoundPlayer(Player):
     #     - _round: The number of round of MCTS performed on each move
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
-    #     - _rollout_policy: The rollout function for the MCTS algorithm
     _n: int
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
-    _rollout_policy: Callable
 
     def __init__(self, n: Union[int, float], tree: Optional[MCTSTree] = None,
-                 c: Union[float, int] = 2, rollout: Optional[Callable] = None) -> None:
+                 c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param n: round of MCTS run per move
@@ -307,9 +256,6 @@ class MCTSRoundPlayer(Player):
         self._n = n
         self._tree = tree
         self._c = c
-        if rollout is None:
-            rollout = MCTSTree.rollout_random
-        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -341,7 +287,7 @@ class MCTSRoundPlayer(Player):
         assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
 
         for _ in range(self._n):
-            self._tree.mcts_round(self._c, self._rollout_policy)
+            self._tree.mcts_round(self._c)
 
         # update tree with the decided move
         move = self._tree.get_most_confident_move()
@@ -355,14 +301,12 @@ class MCTSTimerPlayer(Player):
     #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
     #     - _time_limit: The time limit for each move
-    #     - _rollout_policy: The rollout function for the MCTS algorithm
     _tree: Optional[MCTSTree]
     _c: Union[float, int]
     _time_limit: Union[int, float]
-    _rollout_policy: Callable
 
     def __init__(self, time_limit: Union[int, float], tree: Optional[MCTSTree] = None,
-                 c: Union[float, int] = math.sqrt(2), rollout: Optional[Callable] = None) -> None:
+                 c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and exploration parameter
 
         :param time_limit: time limit per move in seconds
@@ -372,9 +316,6 @@ class MCTSTimerPlayer(Player):
         self._time_limit = time_limit
         self._tree = tree
         self._c = c
-        if rollout is None:
-            rollout = MCTSTree.rollout_random
-        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -429,31 +370,20 @@ class MCTSTimeSavingPlayer(Player):
     time_limit: Union[int, float]
 
     # Private Instance Attributes:
-    #     - _tree: The decision tree for this player to make its moves
     #     - _c: The exploration parameter for the MCTS algorithm
-    #     - _time_limit: The time limit for each move
-    #     - _rollout_policy: The rollout function for the MCTS algorithm
-    _tree: Optional[MCTSTree]
     _c: Union[float, int]
-    _rollout_policy: Callable
 
     def __init__(self, n: Union[int, float], time_limit: Union[int, float],
-                 tree: Optional[MCTSTree] = None, c: Union[float, int] = math.sqrt(2),
-                 rollout: Optional[Callable] = None) -> None:
+                 c: Union[float, int] = math.sqrt(2)) -> None:
         """Initialize this player with the time limit per move and other parameters
 
         :param n: the number of MCTS runs per turn
         :param time_limit: time limit per move in seconds
-        :param tree: the MCTSTree used for making decisions
         :param c: exploration parameter
         """
         self.n = n
         self.time_limit = time_limit
-        self._tree = tree
         self._c = c
-        if rollout is None:
-            rollout = MCTSTree.rollout_random
-        self._rollout_policy = rollout
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -470,17 +400,13 @@ class MCTSTimeSavingPlayer(Player):
         have been made
         :return: a move to be made
         """
-        if self._tree is None:  # initialize a tree if there is no tree
-            if previous_move is None:
-                self._tree = MCTSTree(START_MOVE, copy.deepcopy(game))
-            else:
-                self._tree = MCTSTree(previous_move, copy.deepcopy(game))
+        if len(game.get_valid_moves()) == 1:
+            return game.get_valid_moves()[0]
 
-        else:  # update tree with previous move if there is a tree
-            if len(self._tree.get_subtrees()) == 0:
-                self._tree.expand()
-            if previous_move is not None:
-                self._tree = self._tree.find_subtree_by_move(previous_move)
+        if previous_move is None:
+            tree = MCTSTree(START_MOVE, copy.deepcopy(game))
+        else:
+            tree = MCTSTree(previous_move, copy.deepcopy(game))
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
@@ -490,12 +416,11 @@ class MCTSTimeSavingPlayer(Player):
 
         # at least run 1 second, ends when exceeds time limit or finishes n runs
         while not (time.time() - time_start > max(self.time_limit, 1) or runs_so_far == self.n):
-            self._tree.mcts_round(self._c, self._rollout_policy)
+            tree.mcts_round(self._c)
             runs_so_far += 1
 
         # update tree with the decided move
-        move = self._tree.get_most_confident_move()
-        self._tree = self._tree.find_subtree_by_move(move)
+        move = tree.get_most_confident_move()
         return move
 
 
