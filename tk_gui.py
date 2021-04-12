@@ -20,6 +20,7 @@ This file is Copyright (c) 2021.
 import tkinter as tk
 import time
 from typing import List
+
 from PIL import Image, ImageTk
 
 from mcts import MCTSTimeSavingPlayer
