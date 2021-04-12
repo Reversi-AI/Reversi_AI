@@ -17,15 +17,15 @@ Authors:
 This file is Copyright (c) 2021.
 """
 from __future__ import annotations
-from typing import Optional, Union, Callable
-
+from typing import Optional, Union
 import copy
-import random
 import math
 import pickle
 import time
 
-from constants import BLACK, WHITE, START_MOVE, BOARD_POSITION_8, BOARD_POSITION_6
+import numpy
+
+from constants import BLACK, WHITE, START_MOVE
 from reversi import ReversiGame, Player
 
 
@@ -194,7 +194,7 @@ class MCTSTree:
 
         # rollout
         while game_copy.get_winner() is None:
-            selected_move = random.choice(game_copy.get_valid_moves())
+            selected_move = numpy.random.choice(game_copy.get_valid_moves())
             game_copy.make_move(selected_move)
         return game_copy.get_winner()
 
