@@ -23,7 +23,7 @@ from typing import Optional
 import copy
 import random
 
-from constants import BLACK, WHITE, EMPTY
+from constants import BLACK, WHITE, EMPTY, algebraic_to_index, index_to_algebraic
 
 ################################################################################
 # Class representing Reversi
@@ -223,7 +223,7 @@ class ReversiGame:
         """
         if move != 'pass':
             # replace move position to the active player's piece
-            y_move, x_move = _algebraic_to_index(move)
+            y_move, x_move = algebraic_to_index(move)
             self._board[y_move][x_move] = turn
 
             # flip all the pieces that could be flipped
@@ -259,7 +259,7 @@ class ReversiGame:
         # check every position for valid move
         for y in range(len(self._board)):
             for x in range(len(self._board)):
-                move = _index_to_algebraic((y, x))
+                move = index_to_algebraic((y, x))
                 if self._is_valid_move(turn, move):
                     valid_moves_so_far.append(move)
 
@@ -281,7 +281,7 @@ class ReversiGame:
         :return: whether the given move is valid for the given player
         """
         # turn algebraic coordinate to array index
-        y, x = _algebraic_to_index(move)
+        y, x = algebraic_to_index(move)
 
         # when that position is occupied, the move is invalid
         if self._board[y][x] != EMPTY:
@@ -318,7 +318,7 @@ class ReversiGame:
         :param direction: the direction to be checked for flips
         """
         # process input
-        y, x = _algebraic_to_index(move)
+        y, x = algebraic_to_index(move)
         dy, dx = direction
 
         # identify player pieces and opponent pieces
@@ -362,30 +362,6 @@ class ReversiGame:
         :param pos: coordinates in array indices
         """
         return 0 <= pos[0] <= self._size - 1 and 0 <= pos[1] <= self._size - 1
-
-
-def _algebraic_to_index(move: str) -> tuple[int, int]:
-    """Convert coordinates in algebraic format ex. 'a2' to array indices (y, x).
-
-    Preconditions:
-        - move[0] in _COL_TO_INDEX
-        - move[1] in _ROW_TO_INDEX
-
-    :param move: coordinates in algebraic format
-    """
-    return (_ROW_TO_INDEX[move[1]], _COL_TO_INDEX[move[0]])
-
-
-def _index_to_algebraic(pos: tuple[int, int]) -> str:
-    """Convert coordinates in array indices (y, x) to algebraic format.
-
-    Preconditions:
-        - pos[0] in _COL_TO_INDEX
-        - pos[1] in _ROW_TO_INDEX
-
-    :param pos: coordinates in array indices
-    """
-    return _INDEX_TO_COL[pos[1]] + _INDEX_TO_ROW[pos[0]]
 
 
 ################################################################################

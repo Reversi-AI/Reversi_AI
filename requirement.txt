@@ -8,3 +8,4 @@ ploty
 
 # GUI
 pygame
+Pillow

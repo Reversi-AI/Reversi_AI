@@ -20,12 +20,13 @@ This file is Copyright (c) 2021.
 import tkinter as tk
 import time
 from typing import List
+
 from PIL import Image, ImageTk
 
 from mcts import MCTSTimeSavingPlayer
 from minimax import MobilityPlayer, PositionalPlayer
-from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
-from constants import BLACK, WHITE, DEFAULT_FPS
+from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
+from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
 from typing import Optional
 
 
@@ -508,7 +509,7 @@ class GameScreen(tk.Frame):
 
             if 0 <= xcor <= self.game.get_size() and 0 <= ycor <= self.game.get_size():
                 pos = (ycor, xcor)
-                move = _index_to_algebraic(pos)
+                move = index_to_algebraic(pos)
                 print(move)
                 if move in self.game.get_valid_moves():
                     self.game.make_move(move)

@@ -18,6 +18,7 @@ This file is Copyright (c) 2021.
 """
 from __future__ import annotations
 from typing import Optional, Union, Callable
+
 import copy
 import random
 import math
@@ -420,10 +421,6 @@ class MCTSTimeSavingPlayer(Player):
     or the time reaches the time limit of the move, the player would stop running MCTS and
     make a decision.
 
-    The number of rounds of MCTS run per move is a exponential function of the number of
-    valid moves, which is calculated by a0^n where a0 is a given constant and n is the number
-    of valid moves of the current game state.
-
     Instance Attributes:
         - n: the number of MCTS runs per turn
         - time_limit: the time limit for each move
@@ -487,6 +484,7 @@ class MCTSTimeSavingPlayer(Player):
 
         # assert self._tree.get_game_after_move().get_game_board() == game.get_game_board()
         # assert self._tree.get_game_after_move().get_current_player() == game.get_current_player()
+
         runs_so_far = 0  # the counter for the rounds of MCTS run
         time_start = time.time()
 
@@ -501,7 +499,7 @@ class MCTSTimeSavingPlayer(Player):
         return move
 
 
-# These functions are for training the decision tree for MCTS players
+# These functions are for loading and exporting the decision tree for MCTS players
 def export_tree(tree: MCTSTree, path: str) -> None:
     """Export the given tree to an external writable file
 
@@ -520,35 +518,3 @@ def load_tree(path: str) -> MCTSTree:
     with open(path, 'rb') as f:
         tree = pickle.load(f)
     return tree
-
-
-def mcts_train(n_games: int, game_size: int, mcts_rounds: int, verbose=False) -> None:
-    """Update the corresponding mcts_tree file by playing multiple games"""
-    tree_file_path_black = f'data/mcts_tree_{game_size}_black'
-    loaded_tree_black = load_tree(tree_file_path_black)
-
-    tree_file_path_white = f'data/mcts_tree_{game_size}_white'
-    loaded_tree_white = load_tree(tree_file_path_white)
-
-    for i in range(n_games):
-        black_tree_copy = copy.deepcopy(loaded_tree_black)
-        white_tree_copy = copy.deepcopy(loaded_tree_white)
-
-        black = MCTSRoundPlayer(mcts_rounds, black_tree_copy)
-        white = MCTSRoundPlayer(mcts_rounds, white_tree_copy)
-        print(f'Running game {i + 1}/{n_games}')
-        winner = run_game(black, white, game_size, verbose)
-        print(f'Game {i + 1} winner: {winner}')
-
-        if winner == BLACK:
-            loaded_tree_black = black_tree_copy
-        elif winner == WHITE:
-            loaded_tree_white = white_tree_copy
-
-    export_tree(loaded_tree_black, tree_file_path_black)
-    export_tree(loaded_tree_white, tree_file_path_white)
-
-
-# if __name__ == '__main__':
-#     for _ in range(10):
-#         mcts_train(n_games=10, game_size=8, mcts_rounds=500, verbose=True)

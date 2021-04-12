@@ -3,7 +3,7 @@
 Module Description
 ===============================
 
-This module contains three constants which are used for representing pieces on the board.
+This module contains constants which are used for representing pieces on the board.
 
 Copyright and Usage Information
 ===============================
@@ -21,6 +21,38 @@ This file is Copyright (c) 2021.
 EMPTY = '_'
 BLACK = 'X'
 WHITE = 'O'
+
+# mapping used for converting move between algebraic and index
+COL_TO_INDEX = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+INDEX_TO_COL = {i: f for f, i in COL_TO_INDEX.items()}
+ROW_TO_INDEX = {'1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7}
+INDEX_TO_ROW = {i: r for r, i in ROW_TO_INDEX.items()}
+
+
+# functions used for converting move between algebraic and index
+def algebraic_to_index(move: str) -> tuple[int, int]:
+    """Convert coordinates in algebraic format ex. 'a2' to array indices (y, x).
+
+    Preconditions:
+        - move[0] in _COL_TO_INDEX
+        - move[1] in _ROW_TO_INDEX
+
+    :param move: coordinates in algebraic format
+    """
+    return (ROW_TO_INDEX[move[1]], COL_TO_INDEX[move[0]])
+
+
+def index_to_algebraic(pos: tuple[int, int]) -> str:
+    """Convert coordinates in array indices (y, x) to algebraic format.
+
+    Preconditions:
+        - pos[0] in _COL_TO_INDEX
+        - pos[1] in _ROW_TO_INDEX
+
+    :param pos: coordinates in array indices
+    """
+    return INDEX_TO_COL[pos[1]] + INDEX_TO_ROW[pos[0]]
+
 
 # representation of the weights used in the evaluation of PositionalPlayer
 BOARD_WEIGHT_8 = [[100, -20, 10, 5, 5, 10, -20, 100],
