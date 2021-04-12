@@ -3,9 +3,10 @@ import time
 
 from mcts import MCTSTimeSavingPlayer
 from minimax import MobilityPlayer, PositionalPlayer
-from reversi import ReversiGame, Player, RandomPlayer, _index_to_algebraic, GUIPlayer
-from constants import BLACK, WHITE, DEFAULT_FPS
+from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
+from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
 from typing import Optional
+
 
 class ReversiGUI:
     """

@@ -12,7 +12,7 @@ Authors:
 This file is Copyright (c) 2021.
 """
 import tkinter as tk
-from tk_gui import ReversiGUI
+from old_tk_gui import ReversiGUI
 import copy
 import time
 
@@ -165,5 +165,5 @@ if __name__ == '__main__':
     # test for MCTSPlayer
     # run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
     # run_game(PositionalPlayer(4), MCTSRoundPlayer(100), 8, True)
-    run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(500, 15), 8)
-    # run_game_visual(MCTSTimeSavingPlayer(500, 15), GUIPlayer(), 8)
+    # run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(500, 15), 8)
+    run_game_visual(GUIPlayer(), MCTSTimeSavingPlayer(500, 15), 8)
