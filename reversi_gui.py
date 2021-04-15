@@ -17,40 +17,54 @@ Authors:
 This file is Copyright (c) 2021.
 """
 from typing import Optional, Union
+import pygame
 
 from mcts import MCTSTimeSavingPlayer
-import pygame
 
 from minimax_tree import MobilityTreePlayer, PositionalTreePlayer
 from reversi import RandomPlayer, ReversiGame
 from constants import BLACK, WHITE, INDEX_TO_COL, INDEX_TO_ROW
 
 DEFAULT_DPI = (800, 800)
-DEFAULT_WH_RATIO: float = 1
+DEFAULT_WH_RATIO = 1
 BUTTON_SIZE = (280, 55)
 
-BOARD_6 = {'a1': (85, 610), 'a2': (85, 500), 'a3': (85, 385), 'a4': (90, 275), 'a5': (90, 165), 'a6': (90, 60),
-           'b1': (195, 610), 'b2': (195, 500), 'b3': (195, 385), 'b4': (200, 275), 'b5': (200, 165), 'b6': (200, 60),
-           'c1': (300, 610), 'c2': (300, 500), 'c3': (300, 385), 'c4': (305, 275), 'c5': (305, 165), 'c6': (305, 60),
-           'd1': (405, 610), 'd2': (405, 500), 'd3': (405, 385), 'd4': (410, 275), 'd5': (410, 165), 'd6': (410, 60),
-           'e1': (515, 610), 'e2': (515, 500), 'e3': (515, 385), 'e4': (515, 275), 'e5': (519, 165), 'e6': (519, 60),
-           'f1': (625, 610), 'f2': (625, 500), 'f3': (625, 385), 'f4': (625, 275), 'f5': (625, 165), 'f6': (625, 60)}
+BOARD_6 = {'a1': (85, 610), 'a2': (85, 500), 'a3': (85, 385), 'a4': (90, 275), 'a5': (90, 165),
+           'a6': (90, 60),
+           'b1': (195, 610), 'b2': (195, 500), 'b3': (195, 385), 'b4': (200, 275), 'b5': (200, 165),
+           'b6': (200, 60),
+           'c1': (300, 610), 'c2': (300, 500), 'c3': (300, 385), 'c4': (305, 275), 'c5': (305, 165),
+           'c6': (305, 60),
+           'd1': (405, 610), 'd2': (405, 500), 'd3': (405, 385), 'd4': (410, 275), 'd5': (410, 165),
+           'd6': (410, 60),
+           'e1': (515, 610), 'e2': (515, 500), 'e3': (515, 385), 'e4': (515, 275), 'e5': (519, 165),
+           'e6': (519, 60),
+           'f1': (625, 610), 'f2': (625, 500), 'f3': (625, 385), 'f4': (625, 275), 'f5': (625, 165),
+           'f6': (625, 60)}
 SIDE_6 = 102
-BOARD_8 = {'a1': (65, 649), 'a2': (66, 563), 'a3': (67, 476), 'a4': (69, 392), 'a5': (70, 303), 'a6': (71, 220),
+BOARD_8 = {'a1': (65, 649), 'a2': (66, 563), 'a3': (67, 476), 'a4': (69, 392), 'a5': (70, 303),
+           'a6': (71, 220),
            'a7': (72, 135), 'a8': (75, 50),
-           'b1': (152, 649), 'b2': (152, 563), 'b3': (153, 476), 'b4': (155, 392), 'b5': (157, 303), 'b6': (158, 220),
+           'b1': (152, 649), 'b2': (152, 563), 'b3': (153, 476), 'b4': (155, 392), 'b5': (157, 303),
+           'b6': (158, 220),
            'b7': (159, 135), 'b8': (159, 50),
-           'c1': (238, 649), 'c2': (238, 563), 'c3': (238, 476), 'c4': (238, 392), 'c5': (240, 303), 'c6': (240, 220),
+           'c1': (238, 649), 'c2': (238, 563), 'c3': (238, 476), 'c4': (238, 392), 'c5': (240, 303),
+           'c6': (240, 220),
            'c7': (240, 135), 'c8': (240, 50),
-           'd1': (322, 649), 'd2': (322, 563), 'd3': (322, 476), 'd4': (323, 392), 'd5': (324, 303), 'd6': (324, 220),
+           'd1': (322, 649), 'd2': (322, 563), 'd3': (322, 476), 'd4': (323, 392), 'd5': (324, 303),
+           'd6': (324, 220),
            'd7': (324, 135), 'd8': (324, 50),
-           'e1': (404, 649), 'e2': (404, 563), 'e3': (405, 476), 'e4': (405, 392), 'e5': (407, 303), 'e6': (407, 220),
+           'e1': (404, 649), 'e2': (404, 563), 'e3': (405, 476), 'e4': (405, 392), 'e5': (407, 303),
+           'e6': (407, 220),
            'e7': (408, 135), 'e8': (408, 50),
-           'f1': (488, 649), 'f2': (488, 563), 'f3': (488, 476), 'f4': (488, 392), 'f5': (489, 303), 'f6': (489, 220),
+           'f1': (488, 649), 'f2': (488, 563), 'f3': (488, 476), 'f4': (488, 392), 'f5': (489, 303),
+           'f6': (489, 220),
            'f7': (490, 135), 'f8': (490, 50),
-           'g1': (573, 649), 'g2': (573, 563), 'g3': (573, 476), 'g4': (573, 392), 'g5': (574, 303), 'g6': (574, 220),
+           'g1': (573, 649), 'g2': (573, 563), 'g3': (573, 476), 'g4': (573, 392), 'g5': (574, 303),
+           'g6': (574, 220),
            'g7': (574, 135), 'g8': (574, 50),
-           'h1': (657, 649), 'h2': (657, 563), 'h3': (657, 476), 'h4': (657, 392), 'h5': (656, 303), 'h6': (656, 220),
+           'h1': (657, 649), 'h2': (657, 563), 'h3': (657, 476), 'h4': (657, 392), 'h5': (656, 303),
+           'h6': (656, 220),
            'h7': (656, 135), 'h8': (656, 50)}
 SIDE_8 = 80
 
@@ -59,7 +73,8 @@ def run_reversi_game(dpi: tuple = DEFAULT_DPI) -> None:
     """Call this function directly to start the reversi game window.
     This is the main thread of the game process.
 
-    The default dpi is 800x800 (please do not change the dpi since dpi adaptation is not implemented)
+    The default dpi is 800x800
+    (please do not change the dpi since dpi adaptation is NOT implemented)
     """
     pygame.init()
     if not pygame.display.get_init():
@@ -131,7 +146,8 @@ def _main_menu(game_surface: pygame.Surface) -> int:
 
     while True:
         event = pygame.event.wait()
-        if event.type == pygame.MOUSEMOTION:    # The code in this if check has problems yet to be found.
+        # The code in this if check has problems yet to be found.
+        if event.type == pygame.MOUSEMOTION:
             mouse_pos = pygame.mouse.get_pos()
             if start_button_area[0][0] <= mouse_pos[0] <= start_button_area[0][1] and \
                     start_button_area[1][0] <= mouse_pos[1] <= start_button_area[1][1]:
@@ -240,8 +256,9 @@ def _choose_ai1(game_surface: pygame.surface) -> tuple:
         return (player1, player2)
 
 
-def _choose_ai2(game_surface: pygame.surface) -> Optional[Union[MobilityTreePlayer, PositionalTreePlayer, RandomPlayer,
-                                                          ReversiGame, MCTSTimeSavingPlayer]]:
+def _choose_ai2(game_surface: pygame.surface) -> Optional[Union[MobilityTreePlayer,
+                                                                PositionalTreePlayer, RandomPlayer,
+                                                                ReversiGame, MCTSTimeSavingPlayer]]:
     while True:
         ai_2 = _choose_ai_1and2(2, game_surface)
         if ai_2 == 0:
@@ -446,7 +463,8 @@ def _search_for_move(mouse_pos: tuple, board_size: int) -> str:
     return ''
 
 
-def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, size: int, board: list) -> None:
+def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, size: int,
+                     board: list) -> None:
     game_surface.blit(background, (0, 0))
     pygame.display.flip()
     black_chess6 = pygame.image.load('assets/chess/black6.png')
@@ -476,5 +494,5 @@ def _draw_game_state(game_surface: pygame.Surface, background: pygame.Surface, s
 
 
 if __name__ == "__main__":
-    """Run this __main__ to see the game."""
+    # Run this __main__ to see the game
     run_reversi_game()
