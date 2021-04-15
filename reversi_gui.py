@@ -21,7 +21,7 @@ from typing import Optional, Union
 from mcts import MCTSTimeSavingPlayer
 import pygame
 
-from minimax import MobilityPlayer, PositionalPlayer
+from minimax_tree import MobilityTreePlayer, PositionalTreePlayer
 from reversi import RandomPlayer, ReversiGame
 from constants import BLACK, WHITE, INDEX_TO_COL, INDEX_TO_ROW
 
