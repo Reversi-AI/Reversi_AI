@@ -22,7 +22,6 @@ from plotly.subplots import make_subplots
 from constants import BLACK, WHITE, DEFAULT_FPS
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax_tree import GreedyTreePlayer, PositionalTreePlayer, MobilityTreePlayer
-from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
 
 
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
