@@ -257,16 +257,10 @@ class MobilityTreePlayer(TreePlayer):
             corner_black, corner_white = self._check_corners(game)
             board_filled = (num_black + num_white) / (game.get_size() ** 2)
 
-            if piece == BLACK:
-                if board_filled < 0.80:  # early to middle game
-                    return 10 * (corner_black - corner_white) + len(game.get_valid_moves())
-                else:  # end game
-                    return num_black / num_white
-            else:
-                if board_filled < 0.80:  # early to middle game
-                    return 10 * (corner_white - corner_black) + len(game.get_valid_moves())
-                else:  # end game
-                    return num_white / num_black
+            if board_filled < 0.80:  # early to middle game
+                return len(game.get_valid_moves())
+            else:  # end game
+                return num_white / num_black
 
     def _check_corners(self, game: ReversiGame) -> tuple[int, int]:
         """Return a tuple representing the number of corner taken by each side
@@ -283,4 +277,3 @@ class MobilityTreePlayer(TreePlayer):
                 elif board[i][j] == WHITE:
                     corner_white += 1
         return corner_black, corner_white
-
