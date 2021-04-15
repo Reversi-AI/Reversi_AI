@@ -55,21 +55,21 @@ def index_to_algebraic(pos: tuple[int, int]) -> str:
 
 
 # representation of the weights used in the evaluation of PositionalPlayer
-BOARD_WEIGHT_8 = [[10, -5,  5,  5,  5,  5, -5, 10],
+BOARD_WEIGHT_8 = [[10, -5, 5, 5, 5, 5, -5, 10],
                   [-5, -8, -2, -2, -2, -2, -8, -5],
-                  [5,  -2, -1, -1, -1, -1, -2,  5],
-                  [5,  -2, -1,  0,  0, -1, -2,  5],
-                  [5,  -2, -1,  0,  0, -1, -2,  5],
-                  [5,  -2, -1, -1, -1, -1, -2,  5],
+                  [5, -2, -1, -1, -1, -1, -2, 5],
+                  [5, -2, -1, 0, 0, -1, -2, 5],
+                  [5, -2, -1, 0, 0, -1, -2, 5],
+                  [5, -2, -1, -1, -1, -1, -2, 5],
                   [-5, -8, -2, -2, -2, -2, -8, -5],
-                  [10, -5,  5,  5,  5,  5, -5, 10]]
+                  [10, -5, 5, 5, 5, 5, -5, 10]]
 
-BOARD_WEIGHT_6 = [[10, -5,  5,  5, -5, 10],
+BOARD_WEIGHT_6 = [[10, -5, 5, 5, -5, 10],
                   [-5, -8, -2, -2, -8, -5],
-                  [5,  -2,  0,  0, -2,  5],
-                  [5,  -2,  0,  0, -2,  5],
+                  [5, -2, 0, 0, -2, 5],
+                  [5, -2, 0, 0, -2, 5],
                   [-5, -8, -2, -2, -8, -5],
-                  [10, -5,  5,  5, -5, 10]]
+                  [10, -5, 5, 5, -5, 10]]
 
 # representation of positions on the game board
 BOARD_POSITION_8 = {'corners': {'a1', 'a8', 'h1', 'h8'},
@@ -90,3 +90,13 @@ START_MOVE = '*'
 
 # Default fps for game display
 DEFAULT_FPS = 30
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': [],
+        # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })
