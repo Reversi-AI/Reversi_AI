@@ -22,7 +22,6 @@ from plotly.subplots import make_subplots
 from constants import BLACK, WHITE, DEFAULT_FPS
 from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
 from minimax_tree import GreedyTreePlayer, PositionalTreePlayer, MobilityTreePlayer
-from minimax import GreedyPlayer, PositionalPlayer, MobilityPlayer
 from mcts import MCTSRoundPlayer, MCTSTimerPlayer, MCTSTimeSavingPlayer
 
 

@@ -24,11 +24,10 @@ from typing import List
 from PIL import Image, ImageTk
 
 from mcts import MCTSTimeSavingPlayer, MCTSTimerPlayer
-from minimax import MobilityPlayer, PositionalPlayer, GreedyPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
 from minimax_tree import MobilityTreePlayer, PositionalTreePlayer, GreedyTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
-from typing import Optional, Any
+from typing import Optional
 
 
 class TransparentButton:
@@ -149,82 +148,10 @@ class StartScreen(tk.Frame):
             if button.in_bounds((event.x, event.y)):
                 if button.action == 'start':
                     print('starting')
-                    self.window.frame_swap(TreePlayerSelect(self.window))
+                    self.window.frame_swap(AISelectScreen(self.window))
                 else:
                     self.window.tk_root.destroy()
                     exit()
-
-
-class TreePlayerSelect(tk.Frame):
-    """Represents a window state that asks the user if they want to use TreePlayers
-
-     Instance Attributes:
-        - _background_img: The background image of this window state
-
-        - window: The window that is currently displaying this window state
-        - _buttons: A list representing all the TransparentButton objects in the window
-        - _button_image: An image of a blank button
-        - _text: Text representing user instructions
-        - _background_img: The background image of the window
-
-        Note: PhotoImage instances are stored as Instance Attributes because they are deleted
-        otherwise, they may not be used outside of initialization.
-    """
-    window: VisualReversi
-    _background_img: ImageTk.PhotoImage
-    _buttons: List[TransparentButton]
-    _text: tk.StringVar
-
-    def __init__(self, window: VisualReversi) -> None:
-        """initializes the main menu of the game"""
-        tk.Frame.__init__(self)
-        self.pack()
-        self.window = window
-        self._buttons = []
-
-        # Create the background menu
-        title_font = ('Times', '50', 'bold italic')
-        subtitle_font = ('Times', '15', 'bold italic')
-        # canvas.create_text(mid, text='Sel', width=300, fill='white', font=font,
-        #                    justify=tk.CENTER)
-        self._text = tk.StringVar(self, value='Do you to use Tree Players \n'
-                                              'or Regular Players?')
-        label = tk.Label(self, textvariable=self._text, font=title_font)
-
-        self._background_img = ImageTk.PhotoImage(Image.open("assets/unfocused_board.png"))
-        canvas = tk.Canvas(self, width=self._background_img.width(),
-                           height=self._background_img.height() - 200)
-        canvas.create_image((0, 0), anchor=tk.NW, image=self._background_img)
-
-        mid = self._background_img.width() // 2
-        canvas.create_text((mid, 100),
-                           text='Both players use a tree pattern to make moves. '
-                                'However, Tree Players represent these moves with a Tree object, '
-                                'which makes them slower. If explicitly using trees is not '
-                                'important to you, we recommend using Regular Players.',
-                           width=500, fill='white', font=subtitle_font, justify=tk.CENTER)
-
-        use_tree = TransparentButton(canvas, (250, 200),
-                                     ImageTk.PhotoImage(file="assets/blank_button.png"), 'tree',
-                                     'Tree Players')
-        use_normal = TransparentButton(canvas, (250, 350),
-                                       ImageTk.PhotoImage(file="assets/blank_button.png"), 'norm',
-                                       'Regular Players')
-        self._buttons.append(use_tree)
-        self._buttons.append(use_normal)
-        label.pack(side=tk.TOP)
-        canvas.pack(side=tk.BOTTOM)
-        canvas.bind('<Button-1>', self.player_type_select)
-
-    def player_type_select(self, event: tk.EventType.Button) -> None:
-        """Handles click events on Transparent buttons for the start menu
-        """
-        for button in self._buttons:
-            if button.in_bounds((event.x, event.y)):
-                if button.action == 'tree':
-                    self.window.frame_swap(AISelectScreen(self.window, True))
-                elif button.action == 'norm':
-                    self.window.frame_swap(AISelectScreen(self.window, False))
 
 
 class AISelectScreen(tk.Frame):
@@ -298,10 +225,7 @@ class AISelectScreen(tk.Frame):
         label.pack(side=tk.TOP)
         canvas.pack(side=tk.BOTTOM)
 
-        if use_trees:
-            canvas.bind('<Button-1>', self.ai_select_trees)
-        else:
-            canvas.bind('<Button-1>', self.ai_select_normal)
+        canvas.bind('<Button-1>', self.ai_select_trees)
 
     def set_player(self, first: bool, player: Player) -> None:
         """Set the games player, set the first player if first is true
@@ -330,33 +254,6 @@ class AISelectScreen(tk.Frame):
                     self.set_player(self._player_chosen, RandomPlayer())
                 elif button.action == 'MCTS Player':
                     self.set_player(self._player_chosen, MCTSTimerPlayer(8))
-                elif button.action == 'Human Player':
-                    self.set_player(self._player_chosen, GUIPlayer())
-                elif button.action == 'Quit to Menu':
-                    self.window.frame_swap(StartScreen(self.window))
-
-                # Runs if the second player was just selected
-                if not self._player_chosen and button.action != 'Quit to Menu':
-                    self.window.frame_swap(
-                        BoardSelectScreen(self.window, self._player1, self._player2))
-
-    def ai_select_normal(self, event: tk.EventType.Button) -> None:
-        """Selects an ai player when a Transparent button is clicked
-        """
-        for button in self._buttons:
-            if button.in_bounds((event.x, event.y)):
-                self._player_chosen = not self._player_chosen
-                self._text.set('Select Player 2')
-                if button.action == 'Mobility Player':
-                    self.set_player(self._player_chosen, MobilityPlayer(3))
-                elif button.action == 'Positional Player':
-                    self.set_player(self._player_chosen, PositionalPlayer(3))
-                elif button.action == 'Greedy Player':
-                    self.set_player(self._player_chosen, GreedyPlayer(3))
-                elif button.action == 'Random Player':
-                    self.set_player(self._player_chosen, RandomPlayer())
-                elif button.action == 'MCTS Player':
-                    self.set_player(self._player_chosen, MCTSTimeSavingPlayer(3, 8))
                 elif button.action == 'Human Player':
                     self.set_player(self._player_chosen, GUIPlayer())
                 elif button.action == 'Quit to Menu':
@@ -671,7 +568,6 @@ class GameScreen(tk.Frame):
 
 
 if __name__ == '__main__':
-
     root = tk.Tk()
     app = VisualReversi(root)
     root.mainloop()
