@@ -79,7 +79,7 @@ class MinimaxTree:
             if tree.evaluate() > best_so_far.evaluate():
                 best_lst = tree
 
-        return best_so_far
+        return best_so_far.move
 
 
 class TreePlayer(Player):
