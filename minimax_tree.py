@@ -303,6 +303,9 @@ def check_corners(game: ReversiGame) -> tuple[int, int]:
 
 if __name__ == '__main__':
     import python_ta
+    import python_ta.contracts
+
+    python_ta.contracts.check_all_contracts()
     python_ta.check_all(config={
         'extra-imports': ['typing', 'copy', 'random', 'constants', 'reversi', 'math'],
         'allowed-io': ['view_valid_moves', 'print_game', 'view_valid_moves', 'make_move'],

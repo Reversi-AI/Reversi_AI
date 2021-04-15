@@ -269,9 +269,9 @@ class GameStartScreen:
         player_choices = ['Mobility Player', 'Positional Player', 'Random Player',
                           'MCTS Player']
         board_choices = ['6', '8']
-        variable_player = tk.StringVar(root)
+        variable_player = tk.StringVar(tk_root)
         variable_player.set('MCTS Player')
-        variable_board = tk.StringVar(root)
+        variable_board = tk.StringVar(tk_root)
         variable_board.set('8')
         tk.Label(self.frame, text='Reversi').pack()
         tk.Button(self.frame, text='start game', command=self.start_game).pack()
