@@ -1,3 +1,16 @@
+"""Run Reversi game
+
+Module Description
+===============================
+This is the original implementation of the GUI. Used for testing purposes
+===============================
+Authors:
+    - Haoze Deng
+    - Peifeng Zhang
+    - Man Chon Ho
+    - Alexander Nicholas Conway
+This file is Copyright (c) 2021.
+"""
 import tkinter as tk
 import time
 
