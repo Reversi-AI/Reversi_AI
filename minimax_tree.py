@@ -50,7 +50,7 @@ class MinimaxTree:
         self._subtrees = []
         self.eval = eval
 
-    def get_subtrees(self):
+    def get_subtrees(self) -> list[MinimaxTree]:
         """Get the subtrees of the tree"""
         return self._subtrees
 
@@ -61,9 +61,9 @@ class MinimaxTree:
     def add_subtree(self, subtree: MinimaxTree):
         """Append a new tree to this trees subtrees and update it's evaluation"""
         self._subtrees.append(subtree)
-        self.update_evalutation()
+        self._update_evaluation()
 
-    def update_evalutation(self):
+    def _update_evaluation(self) -> None:
         """Update the Tree's evaluation"""
         if self.max:
             self.eval = max(tree.evaluate() for tree in self._subtrees)
@@ -72,8 +72,8 @@ class MinimaxTree:
             self.eval = min(tree.evaluate() for tree in self._subtrees)
             self.beta = min(self.beta, self.eval)
 
-    def get_best(self):
-
+    def get_best(self) -> str:
+        """Returns the best move amoung a Tree's subtrees"""
         best_tree = self._subtrees[0]
         for tree in self._subtrees:
             if tree.evaluate() > best_tree.evaluate():
@@ -81,11 +81,13 @@ class MinimaxTree:
 
         return best_tree.move
 
+
 class TreePlayer(Player):
+    """A Reversi Player that constructs a Tree to make moves"""
 
     def __init__(self, depth: int):
         self._depth = depth
-
+        self.tree = None
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -108,20 +110,24 @@ class TreePlayer(Player):
         return tree.get_best()
 
     def build_minimax_tree(self, game: ReversiGame, piece: str,
-                           depth: int, find_max: bool, previous_move: str) -> MinimaxTree:
+                           depth: int, find_max: bool, previous_move: str, alpha: float = math.inf,
+                           beta: float = -math.inf) -> MinimaxTree:
         """Construct a tree with a height of depth, prune branches based on the Tree's
         evaluate function"""
-        game_tree = MinimaxTree(previous_move, find_max, game)
+        game_tree = MinimaxTree(previous_move, find_max, game, alpha=alpha, beta=beta)
 
         if depth == 0:
             game_tree.eval = self._value_eval(game, piece)
         else:
             for move in game.get_valid_moves():
+
                 subtree = self.build_minimax_tree(game.simulate_move(move), piece, depth - 1,
-                                                  not find_max, move)
+                                                  not find_max, move, alpha=game_tree.alpha,
+                                                  beta=game_tree.beta)
+
                 game_tree.add_subtree(subtree)
 
-                if game_tree.beta < game_tree.alpha:
+                if game_tree.beta <= game_tree.alpha:
                     break
 
         return game_tree
@@ -131,10 +137,12 @@ class TreePlayer(Player):
 
 
 class GreedyTreePlayer(TreePlayer):
+    """A Reversi AI player who aims for the maximum piece of its own
+    using the minimax algorithm."""
 
     def _value_eval(self, game: ReversiGame, piece: str) -> Union[float, int]:
-        """The evaluation function for minimax. For GreedMinimax Player,
-        the evaluation function will return the number of piece of its side
+        """The evaluation function for minimax. The evaluation function will
+        return the number of piece of its side
 
         Preconditions:
             - piece in {BLACK, WHITE}
@@ -157,8 +165,8 @@ class GreedyTreePlayer(TreePlayer):
 
 
 class PositionalTreePlayer(TreePlayer):
-    """A Reversi AI player who aims for the maximum piece of its own
-    using the minimax algorithm."""
+    """A Reversi AI player who aims for the best positions on the Reversi board using
+    a minimax tree"""
     # Private Instance Attributes:
     #     - _depth: the depth parameter for the minimax algorithm for each decision
     _depth: int
@@ -217,8 +225,8 @@ class PositionalTreePlayer(TreePlayer):
 
 
 class MobilityTreePlayer(TreePlayer):
-    """A Reversi AI player who aims for the maximum piece of its own
-    using the minimax algorithm."""
+    """A Reversi AI player who aims to restrict it's opponent's movement using
+    a minimax Tree"""
     # Private Instance Attributes:
     #     - _depth: the depth parameter for the minimax algorithm for each decision
     _depth: int

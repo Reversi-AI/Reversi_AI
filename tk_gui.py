@@ -23,12 +23,12 @@ from typing import List
 
 from PIL import Image, ImageTk
 
-from mcts import MCTSTimeSavingPlayer
-from minimax import MobilityPlayer, PositionalPlayer
+from mcts import MCTSTimeSavingPlayer, MCTSTimerPlayer
+from minimax import MobilityPlayer, PositionalPlayer, GreedyPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
 from minimax_tree import MobilityTreePlayer, PositionalTreePlayer, GreedyTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
-from typing import Optional
+from typing import Optional, Any
 
 
 class TransparentButton:
@@ -46,7 +46,8 @@ class TransparentButton:
     action: str
 
     def __init__(self, canvas: tk.Canvas, pos: tuple[int, int],
-                 image: ImageTk.PhotoImage, action: str, text='', anchor=tk.NW):
+                 image: ImageTk.PhotoImage, action: str, text: str = '',
+                 anchor: str = tk.NW) -> None:
         """Initialize the button on the canvas"""
         self.image = image
         self.pos = pos
@@ -75,23 +76,29 @@ class TransparentButton:
 
 class VisualReversi:
     """
-    An application that takes user input and visualizes a game of Reversi between selected algorithms
-    """
+    An application that takes user input and visualizes a game of Reversi between selected
+    algorithms
 
-    def __init__(self, root: tk.Tk) -> None:
+    Instance Attributes:
+     - root: The root of the application
+     - current_frame:  The window that the application is currently in
+    """
+    tk_root: tk.Tk
+    current_frame: tk.Frame
+
+    def __init__(self, tk_root: tk.Tk) -> None:
         """Initalizes a the VisualReversi window, setting the current state to StartScreen"""
-        root.frame = StartScreen(self)
-        self.root = root
-        self.current_frame = root.frame
-        self.root.title('Reversi')
+        tk_root.frame = StartScreen(self)
+        self.tk_root = tk_root
+        self.current_frame = tk_root.frame
+        self.tk_root.title('Reversi')
 
     def frame_swap(self, frame: tk.Frame) -> None:
         """Change the current frame to the provided frame"""
         self.current_frame.destroy()
         self.current_frame = frame
-        self.root.frame = self.current_frame
+        self.tk_root.frame = self.current_frame
         self.current_frame.pack()
-
 
 
 class StartScreen(tk.Frame):
@@ -99,7 +106,6 @@ class StartScreen(tk.Frame):
 
       Instance Attributes:
          - _background_img: The background image of this window state
-
          - window: The window that is currently displaying this window state
          - _buttons: A list representing all the TransparentButton objects in the window
          - _background_img: The background image of the window
@@ -109,41 +115,116 @@ class StartScreen(tk.Frame):
      """
     window: VisualReversi
     _buttons: List[TransparentButton]
+    _background_img: ImageTk.PhotoImage
 
     def __init__(self, window: VisualReversi) -> None:
         """initializes the main menu of the game"""
         tk.Frame.__init__(self)
         self.pack()
         self.window = window
-        self.buttons = []
+        self._buttons = []
 
         # Create the background menu
-        self.background_img = ImageTk.PhotoImage(Image.open("assets/main_menu.png"))
-        canvas = tk.Canvas(self, width=self.background_img.width(),
-                           height=self.background_img.height())
-        canvas.create_image((0, 0), anchor=tk.NW, image=self.background_img)
+        self._background_img = ImageTk.PhotoImage(Image.open("assets/main_menu.png"))
+        canvas = tk.Canvas(self, width=self._background_img.width(),
+                           height=self._background_img.height())
+        canvas.create_image((0, 0), anchor=tk.NW, image=self._background_img)
 
         start = TransparentButton(canvas, (250, 320),
-                                  ImageTk.PhotoImage(file="assets/start_button.png"), 'start')
-        quit = TransparentButton(canvas, (250, 380),
-                                 ImageTk.PhotoImage(file="assets/quit_button.png"), 'quit')
-        self.buttons.append(start)
-        self.buttons.append(quit)
+                                  ImageTk.PhotoImage(file="assets/blank_button.png"), 'start',
+                                  'Start Game')
+        quit_button = TransparentButton(canvas, (250, 380),
+                                        ImageTk.PhotoImage(file="assets/blank_button.png"), 'quit',
+                                        'Quit')
+        self._buttons.append(start)
+        self._buttons.append(quit_button)
 
         canvas.pack()
         canvas.bind('<Button-1>', self.menu_click)
 
-    def menu_click(self, event) -> None:
+    def menu_click(self, event: tk.EventType.Button) -> None:
         """Handles click events on Transparent buttons for the start menu
         """
-        for button in self.buttons:
+        for button in self._buttons:
             if button.in_bounds((event.x, event.y)):
                 if button.action == 'start':
                     print('starting')
-                    self.window.frame_swap(AISelectScreen(self.window))
+                    self.window.frame_swap(TreePlayerSelect(self.window))
                 else:
-                    self.window.root.destroy()
+                    self.window.tk_root.destroy()
                     exit()
+
+
+class TreePlayerSelect(tk.Frame):
+    """Represents a window state that asks the user if they want to use TreePlayers
+
+     Instance Attributes:
+        - _background_img: The background image of this window state
+
+        - window: The window that is currently displaying this window state
+        - _buttons: A list representing all the TransparentButton objects in the window
+        - _button_image: An image of a blank button
+        - _text: Text representing user instructions
+        - _background_img: The background image of the window
+
+        Note: PhotoImage instances are stored as Instance Attributes because they are deleted
+        otherwise, they may not be used outside of initialization.
+    """
+    window: VisualReversi
+    _background_img: ImageTk.PhotoImage
+    _buttons: List[TransparentButton]
+    _text: tk.StringVar
+
+    def __init__(self, window: VisualReversi) -> None:
+        """initializes the main menu of the game"""
+        tk.Frame.__init__(self)
+        self.pack()
+        self.window = window
+        self._buttons = []
+
+        # Create the background menu
+        title_font = ('Times', '50', 'bold italic')
+        subtitle_font = ('Times', '15', 'bold italic')
+        # canvas.create_text(mid, text='Sel', width=300, fill='white', font=font,
+        #                    justify=tk.CENTER)
+        self._text = tk.StringVar(self, value='Do you to use Tree Players \n'
+                                              'or Regular Players?')
+        label = tk.Label(self, textvariable=self._text, font=title_font)
+
+        self._background_img = ImageTk.PhotoImage(Image.open("assets/unfocused_board.png"))
+        canvas = tk.Canvas(self, width=self._background_img.width(),
+                           height=self._background_img.height() - 200)
+        canvas.create_image((0, 0), anchor=tk.NW, image=self._background_img)
+
+        mid = self._background_img.width() // 2
+        canvas.create_text((mid, 100),
+                           text='Both players use a tree pattern to make moves. '
+                                'However, Tree Players represent these moves with a Tree object, '
+                                'which makes them slower. If explicitly using trees is not '
+                                'important to you, we recommend using Regular Players.',
+                           width=500, fill='white', font=subtitle_font, justify=tk.CENTER)
+
+        use_tree = TransparentButton(canvas, (250, 200),
+                                     ImageTk.PhotoImage(file="assets/blank_button.png"), 'tree',
+                                     'Tree Players')
+        use_normal = TransparentButton(canvas, (250, 350),
+                                       ImageTk.PhotoImage(file="assets/blank_button.png"), 'norm',
+                                       'Regular Players')
+        self._buttons.append(use_tree)
+        self._buttons.append(use_normal)
+        label.pack(side=tk.TOP)
+        canvas.pack(side=tk.BOTTOM)
+        canvas.bind('<Button-1>', self.player_type_select)
+
+    def player_type_select(self, event: tk.EventType.Button) -> None:
+        """Handles click events on Transparent buttons for the start menu
+        """
+        for button in self._buttons:
+            if button.in_bounds((event.x, event.y)):
+                if button.action == 'tree':
+                    self.window.frame_swap(AISelectScreen(self.window, True))
+                elif button.action == 'norm':
+                    self.window.frame_swap(AISelectScreen(self.window, False))
 
 
 class AISelectScreen(tk.Frame):
@@ -151,7 +232,7 @@ class AISelectScreen(tk.Frame):
 
      Instance Attributes:
         - _background_img: The background image of this window state
-
+        - _player_chosen: Whether the first AI has been selected
         - window: The window that is currently displaying this window state
         - _buttons: A list representing all the TransparentButton objects in the window
         - _player1: The first player chosen for a reversi game
@@ -168,9 +249,10 @@ class AISelectScreen(tk.Frame):
     _buttons: List[TransparentButton]
     _player1: Optional[Player]
     _player2: Optional[Player]
-    _text: str
+    _text: tk.StringVar
+    _player_chosen: False
 
-    def __init__(self, window: VisualReversi) -> None:
+    def __init__(self, window: VisualReversi, use_trees: bool = False) -> None:
         """initializes the main menu of the game"""
         tk.Frame.__init__(self)
         self.pack()
@@ -183,18 +265,16 @@ class AISelectScreen(tk.Frame):
         # Create the background menu
         title_font = ('Times', '50', 'bold italic')
         subtitle_font = ('Times', '15', 'bold italic')
-        # canvas.create_text(mid, text='Sel', width=300, fill='white', font=font,
-        #                    justify=tk.CENTER)
-        self.text = tk.StringVar(self, value='Select Player 1')
-        label = tk.Label(self, textvariable=self.text, font=title_font)
+        self._text = tk.StringVar(self, value='Select Black')
+        label = tk.Label(self, textvariable=self._text, font=title_font)
 
         self._background_img = ImageTk.PhotoImage(Image.open("assets/unfocused_board.png"))
         canvas = tk.Canvas(self, width=self._background_img.width(),
                            height=self._background_img.height() - 100)
         canvas.create_image((0, 0), anchor=tk.NW, image=self._background_img)
 
-        players = ['Human Player', 'Mobility Player', 'Positional Player', 'Random Player',
-                   'MCTS Player']
+        players = ['Human Player', 'Greedy Player', 'Mobility Player', 'Positional Player',
+                   'Random Player', 'MCTS Player']
 
         increment = (self._background_img.height() - 200) / (len(players) + 1)
         mid = self._background_img.width() // 2
@@ -217,7 +297,11 @@ class AISelectScreen(tk.Frame):
                 self._buttons.append(_)
         label.pack(side=tk.TOP)
         canvas.pack(side=tk.BOTTOM)
-        canvas.bind('<Button-1>', self.ai_select)
+
+        if use_trees:
+            canvas.bind('<Button-1>', self.ai_select_trees)
+        else:
+            canvas.bind('<Button-1>', self.ai_select_normal)
 
     def set_player(self, first: bool, player: Player) -> None:
         """Set the games player, set the first player if first is true
@@ -228,17 +312,47 @@ class AISelectScreen(tk.Frame):
         else:
             self._player2 = player
 
-    def ai_select(self, event) -> None:
-        """Handles click events on Transparent buttons for the start menu
+    def ai_select_trees(self, event: tk.EventType.Button) -> None:
+        """Selects an ai tree player when a Transparent button is clicked
+        """
+
+        for button in self._buttons:
+            if button.in_bounds((event.x, event.y)):
+                self._player_chosen = not self._player_chosen
+                self._text.set('Select White')
+                if button.action == 'Mobility Player':
+                    self.set_player(self._player_chosen, MobilityTreePlayer(3))
+                elif button.action == 'Positional Player':
+                    self.set_player(self._player_chosen, PositionalTreePlayer(3))
+                elif button.action == 'Greedy Player':
+                    self.set_player(self._player_chosen, GreedyTreePlayer(3))
+                elif button.action == 'Random Player':
+                    self.set_player(self._player_chosen, RandomPlayer())
+                elif button.action == 'MCTS Player':
+                    self.set_player(self._player_chosen, MCTSTimerPlayer(8))
+                elif button.action == 'Human Player':
+                    self.set_player(self._player_chosen, GUIPlayer())
+                elif button.action == 'Quit to Menu':
+                    self.window.frame_swap(StartScreen(self.window))
+
+                # Runs if the second player was just selected
+                if not self._player_chosen and button.action != 'Quit to Menu':
+                    self.window.frame_swap(
+                        BoardSelectScreen(self.window, self._player1, self._player2))
+
+    def ai_select_normal(self, event: tk.EventType.Button) -> None:
+        """Selects an ai player when a Transparent button is clicked
         """
         for button in self._buttons:
             if button.in_bounds((event.x, event.y)):
                 self._player_chosen = not self._player_chosen
-                self.text.set('Select Player 2')
+                self._text.set('Select Player 2')
                 if button.action == 'Mobility Player':
                     self.set_player(self._player_chosen, MobilityPlayer(3))
                 elif button.action == 'Positional Player':
                     self.set_player(self._player_chosen, PositionalPlayer(3))
+                elif button.action == 'Greedy Player':
+                    self.set_player(self._player_chosen, GreedyPlayer(3))
                 elif button.action == 'Random Player':
                     self.set_player(self._player_chosen, RandomPlayer())
                 elif button.action == 'MCTS Player':
@@ -264,7 +378,7 @@ class BoardSelectScreen(tk.Frame):
         - _buttons: A list representing all the TransparentButton objects in the window
         - _player1: The first player of the game
         - _player2: The second player of the game
-        - _button_image: An image of a blank button
+        - _button_img: An image of a blank button
 
         Note: PhotoImage instances are stored as Instance Attributes because they are deleted
         otherwise, they may not be used outside of initialization.
@@ -273,7 +387,8 @@ class BoardSelectScreen(tk.Frame):
     _buttons: List[TransparentButton]
     _player1: Player
     _player2: Player
-    _button_image: ImageTk.PhotoImage
+    _button_img: ImageTk.PhotoImage
+    _background_img: ImageTk.PhotoImage
 
     def __init__(self, window: VisualReversi, player1: Player, player2: Player) -> None:
         """initializes the main menu of the game"""
@@ -295,14 +410,13 @@ class BoardSelectScreen(tk.Frame):
         font = ('Times', '50', 'bold italic')
         canvas.create_text(mid, text='Select a Board Size', width=500, fill='white', font=font,
                            justify=tk.CENTER)
-        pad = 75
 
         select_6 = Image.open('assets/othello_board6x6.png').resize((300, 300))
         select_8 = Image.open('assets/othello_board8x8.png').resize((300, 300))
 
-        six = TransparentButton(canvas, (pad, 200),
+        six = TransparentButton(canvas, (75, 200),
                                 ImageTk.PhotoImage(select_6), '6')
-        eight = TransparentButton(canvas, (self._background_img.width() - pad - 300, 200),
+        eight = TransparentButton(canvas, (self._background_img.width() - 75 - 300, 200),
                                   ImageTk.PhotoImage(select_8), '8')
 
         self._button_img = ImageTk.PhotoImage(Image.open('assets/blank_button.png'))
@@ -324,7 +438,7 @@ class BoardSelectScreen(tk.Frame):
         canvas.pack()
         canvas.bind('<Button-1>', self.board_select)
 
-    def board_select(self, event) -> None:
+    def board_select(self, event: tk.EventType.Button) -> None:
         """Handles click events on Transparent buttons for the start menu
         """
         for button in self._buttons:
@@ -352,6 +466,10 @@ class GameScreen(tk.Frame):
         - _canvas: A tkinter Canvas on which game elements are drawn
         - _click_move: The move made by the cursor, only relevant if a Human Player is playing
         - window: The window that is currently displaying this window state
+        - _board_pixel_size: The size of an edge of the Reversi board, in pixels
+        - previous_move_dis: A string to display the players previous move
+        - _click_wanted: Represents if the window is waiting for player input
+        - game: The ReversiGame being played
 
         Note: PhotoImage instances are stored as Instance Attributes because they are deleted
         otherwise, they may not be used outside of initialization.
@@ -364,6 +482,10 @@ class GameScreen(tk.Frame):
     _canvas: tk.Canvas
     _click_move: str
     window: VisualReversi
+    _board_pixel_size: int
+    previous_move_dis: str
+    _click_wanted: tk.BooleanVar
+    game: ReversiGame
 
     def __init__(self, window: VisualReversi, size: int) -> None:
         """initialize gui
@@ -428,7 +550,7 @@ class GameScreen(tk.Frame):
 
         # Display the previous move
         end = self._background_img.width() - 15
-        self._canvas.create_text((end, bar_y), text= self.previous_move_dis,
+        self._canvas.create_text((end, bar_y), text=self.previous_move_dis,
                                  fill='white', font=font, anchor=tk.E)
 
     def run_game(self, black: Player, white: Player, fps: int = DEFAULT_FPS) -> None:
@@ -446,9 +568,9 @@ class GameScreen(tk.Frame):
 
             if previous_move != 'mouse_pos':
                 self.game.make_move(previous_move)
-                self._draw_game_state(previous_move)
+                self._draw_game_state()
                 time.sleep(1 / fps)
-                self.window.root.update()
+                self.window.tk_root.update()
             else:
                 previous_move = self._gui_move()
 
@@ -470,10 +592,10 @@ class GameScreen(tk.Frame):
             return 'pass'
         else:
             self._click_wanted.set(True)
-            self.window.root.wait_variable(self._click_wanted)
+            self.window.tk_root.wait_variable(self._click_wanted)
             return self._click_move
 
-    def _draw_game_state(self, previous_move: Optional[str] = None) -> None:
+    def _draw_game_state(self) -> None:
         """Visualize the board on the windows canvas"""
         lst = self.game.get_game_board()
 
@@ -484,7 +606,7 @@ class GameScreen(tk.Frame):
 
         inset = x / 2
 
-        colours = {WHITE: 'white', BLACK: 'black'}
+        # colours = {WHITE: 'white', BLACK: 'black'}
 
         images = {WHITE: self._white_disk, BLACK: self._black_disk}
 
@@ -494,12 +616,12 @@ class GameScreen(tk.Frame):
             for c in range(0, self.game.get_board_size()):
 
                 if lst[r][c] in {WHITE, BLACK}:
-                    colour = colours[lst[r][c]]
+                    # colour = colours[lst[r][c]]
 
                     top = (c * x + inset + board_pos[0], r * y + inset + board_pos[1])
                     self._canvas.create_image(top, image=images[lst[r][c]])
 
-    def click(self, event) -> None:
+    def click(self, event: tk.EventType.Button) -> None:
         """Called when mouse is clicked on the given canvas
         Finds the relative position of the click and executes a move"""
 
@@ -515,13 +637,13 @@ class GameScreen(tk.Frame):
                     self.game.make_move(move)
                     self._click_move = move
                     self._draw_game_state()
-                    self.window.root.update()
+                    self.window.tk_root.update()
                     self._click_wanted.set(False)
                     return
 
     def quit(self) -> None:
         """quit the entire game"""
-        self.window.root.destroy()
+        self.window.tk_root.destroy()
         exit()
 
     def win_msg(self) -> None:
@@ -549,6 +671,7 @@ class GameScreen(tk.Frame):
 
 
 if __name__ == '__main__':
+
     root = tk.Tk()
     app = VisualReversi(root)
     root.mainloop()
