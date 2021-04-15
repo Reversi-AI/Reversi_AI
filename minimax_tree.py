@@ -74,12 +74,12 @@ class MinimaxTree:
 
     def get_best(self) -> str:
         """Returns the best move amoung a Tree's subtrees"""
-        best_tree = self._subtrees[0]
+        best_so_far = self._subtrees[0]
         for tree in self._subtrees:
-            if tree.evaluate() > best_tree.evaluate():
-                best_tree = tree
+            if tree.evaluate() > best_so_far.evaluate():
+                best_lst = tree
 
-        return best_tree.move
+        return best_so_far
 
 
 class TreePlayer(Player):
@@ -110,13 +110,13 @@ class TreePlayer(Player):
         return tree.get_best()
 
     def build_minimax_tree(self, game: ReversiGame, piece: str,
-                           depth: int, find_max: bool, previous_move: str, alpha: float = math.inf,
-                           beta: float = -math.inf) -> MinimaxTree:
+                           depth: int, find_max: bool, previous_move: str, alpha: float = -math.inf,
+                           beta: float = math.inf) -> MinimaxTree:
         """Construct a tree with a height of depth, prune branches based on the Tree's
         evaluate function"""
-        game_tree = MinimaxTree(previous_move, find_max, game, alpha=alpha, beta=beta)
+        game_tree = MinimaxTree(move=previous_move, max=find_max, game=game, alpha=alpha, beta=beta)
 
-        if depth == 0:
+        if game.get_winner() is not None or depth == 0:
             game_tree.eval = self._value_eval(game, piece)
         else:
             for move in game.get_valid_moves():
@@ -279,3 +279,4 @@ class MobilityTreePlayer(TreePlayer):
                 elif board[i][j] == WHITE:
                     corner_white += 1
         return corner_black, corner_white
+
