@@ -24,11 +24,10 @@ from typing import List
 from PIL import Image, ImageTk
 
 from mcts import MCTSTimeSavingPlayer, MCTSTimerPlayer
-from minimax import MobilityPlayer, PositionalPlayer, GreedyPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
 from minimax_tree import MobilityTreePlayer, PositionalTreePlayer, GreedyTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
-from typing import Optional, Any
+from typing import Optional
 
 
 class TransparentButton:
