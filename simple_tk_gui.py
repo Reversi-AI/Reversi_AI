@@ -326,9 +326,6 @@ class GameStartScreen:
 
 
 if __name__ == '__main__':
-    # root = tk.Tk()
-    # app = GameStartScreen(root)
-    # root.mainloop()
     import python_ta
     import python_ta.contracts
 
@@ -341,3 +338,7 @@ if __name__ == '__main__':
         'max-line-length': 100,
         'disable': ['E1136']
     })
+
+    root = tk.Tk()
+    app = GameStartScreen(root)
+    root.mainloop()
