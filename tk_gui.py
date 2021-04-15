@@ -19,7 +19,7 @@ This file is Copyright (c) 2021.
 """
 import tkinter as tk
 import time
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from PIL import Image, ImageTk
 
@@ -84,13 +84,18 @@ class VisualReversi:
     """
     tk_root: tk.Tk
     current_frame: tk.Frame
+    minimax_depth: int
+    mcts_info: tuple[int, Union[float, int]]
 
-    def __init__(self, tk_root: tk.Tk) -> None:
+    def __init__(self, tk_root: tk.Tk, minimax_depth: int,
+                 mcts_param: tuple[int, Union[float, int]]) -> None:
         """Initializes a the VisualReversi window, setting the current state to StartScreen"""
         tk_root.frame = StartScreen(self)
         self.tk_root = tk_root
         self.current_frame = tk_root.frame
         self.tk_root.title('Reversi')
+        self.minimax_depth = minimax_depth
+        self.mcts_info = mcts_param
 
     def frame_swap(self, frame: tk.Frame) -> None:
         """Change the current frame to the provided frame"""
@@ -245,15 +250,19 @@ class AISelectScreen(tk.Frame):
                 self._player_chosen = not self._player_chosen
                 self._text.set('Select White')
                 if button.action == 'Mobility Player':
-                    self.set_player(self._player_chosen, MobilityTreePlayer(3))
+                    self.set_player(self._player_chosen,
+                                    MobilityTreePlayer(self.window.minimax_depth))
                 elif button.action == 'Positional Player':
-                    self.set_player(self._player_chosen, PositionalTreePlayer(3))
+                    self.set_player(self._player_chosen,
+                                    PositionalTreePlayer(self.window.minimax_depth))
                 elif button.action == 'Greedy Player':
-                    self.set_player(self._player_chosen, GreedyTreePlayer(3))
+                    self.set_player(self._player_chosen,
+                                    GreedyTreePlayer(self.window.minimax_depth))
                 elif button.action == 'Random Player':
                     self.set_player(self._player_chosen, RandomPlayer())
                 elif button.action == 'MCTS Player':
-                    self.set_player(self._player_chosen, MCTSTimeSavingPlayer(100, 8))
+                    self.set_player(self._player_chosen,
+                                    MCTSTimeSavingPlayer(*self.window.mcts_info))
                 elif button.action == 'Human Player':
                     self.set_player(self._player_chosen, GUIPlayer())
                 elif button.action == 'Quit to Menu':
@@ -580,10 +589,10 @@ class GameScreen(UIScreen):
         self.window.frame_swap(StartScreen(self.window))
 
 
-def run_app() -> None:
+def run_app(minimax_depth: int, mcts_param: tuple[int, Union[int, float]]) -> None:
     """Creates the tk root and runs the Reversi application"""
     root = tk.Tk()
-    VisualReversi(root)
+    VisualReversi(root, minimax_depth, mcts_param)
     root.mainloop()
 
 
@@ -596,3 +605,5 @@ if __name__ == '__main__':
         'max-line-length': 100,
         'disable': ['E1136', 'R0913']
     })
+
+    run_app(minimax_depth=3, mcts_param=(10, 0.3))
