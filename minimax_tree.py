@@ -74,7 +74,11 @@ class MinimaxTree:
             self.beta = min(self.beta, self.eval)
 
     def get_best(self) -> str:
-        """Returns the best move amoung a Tree's subtrees"""
+        """Returns the best move among a Tree's subtrees
+
+        Preconditions:
+            - len(self._subtrees) > 0
+        """
         best_so_far = self._subtrees[0]
         for tree in self._subtrees:
             if tree.evaluate() > best_so_far.evaluate():

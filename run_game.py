@@ -167,4 +167,4 @@ if __name__ == '__main__':
     # run_game(PositionalPlayer(4), MCTSRoundPlayer(100), 8, True)
     # run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(500, 15), 8)
     # run_game_visual(GUIPlayer(), MCTSTimeSavingPlayer(n=1000, time_limit=15, c=1), 8)
-    run_games_ai(MobilityTreePlayer(2), MobilityPlayer(2), 100, 6)
+    run_games_ai(MobilityTreePlayer(2), PositionalTreePlayer(2), 100, 6)

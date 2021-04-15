@@ -179,7 +179,7 @@ class AISelectScreen(tk.Frame):
     _text: tk.StringVar
     _player_chosen: False
 
-    def __init__(self, window: VisualReversi, use_trees: bool = False) -> None:
+    def __init__(self, window: VisualReversi) -> None:
         """initializes the main menu of the game"""
         tk.Frame.__init__(self)
         self.pack()
@@ -567,7 +567,8 @@ class GameScreen(tk.Frame):
         self.window.frame_swap(StartScreen(self.window))
 
 
-if __name__ == '__main__':
+def run_app() -> None:
+    """Creates the tk root and runs the Reversi application"""
     root = tk.Tk()
     app = VisualReversi(root)
     root.mainloop()
