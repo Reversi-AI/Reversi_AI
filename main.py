@@ -47,6 +47,6 @@ if __name__ == '__main__':
     # run_games_ai(PositionalTreePlayer(3), MobilityTreePlayer(3), n=100, size=6, show_stats=True)
 
     # mcts vs minimax
-    # run_games_ai(MCTSTimeSavingPlayer(100, 0.1), GreedyTreePlayer(3), n=10, size=6, show_stats=True)
-    # run_games_ai(MCTSTimeSavingPlayer(100, 0.1), PositionalTreePlayer(3), n=10, size=6, show_stats=True)
-    # run_games_ai(MCTSTimeSavingPlayer(100, 0.1), MobilityTreePlayer(3), n=10, size=6, show_stats=True)
+    # run_games_ai(MCTSTimeSavingPlayer(100, 1), GreedyTreePlayer(3), n=100, size=6, show_stats=True)
+    # run_games_ai(MCTSTimeSavingPlayer(100, 1), PositionalTreePlayer(3), n=100, size=6, show_stats=True)
+    # run_games_ai(MCTSTimeSavingPlayer(100, 1), MobilityTreePlayer(3), n=100, size=6, show_stats=True)

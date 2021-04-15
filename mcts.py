@@ -452,5 +452,5 @@ if __name__ == '__main__':
                           'constants'],
         'allowed-io': ['export_tree', 'load_tree'],
         'max-line-length': 100,
-        'disable': ['E1136']
+        'disable': ['E1136', 'R1702', 'R0201']
     })
