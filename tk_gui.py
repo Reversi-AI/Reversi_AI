@@ -19,15 +19,14 @@ This file is Copyright (c) 2021.
 """
 import tkinter as tk
 import time
-from typing import List
+from typing import List, Optional
 
 from PIL import Image, ImageTk
 
-from mcts import MCTSTimeSavingPlayer, MCTSTimerPlayer
+from mcts import MCTSTimeSavingPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
 from minimax_tree import MobilityTreePlayer, PositionalTreePlayer, GreedyTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
-from typing import Optional
 
 
 class TransparentButton:
@@ -63,6 +62,7 @@ class TransparentButton:
 
     def in_bounds(self, cords: tuple[int, int]) -> bool:
         """Returns whether the given coordinates are within the button bounds
+        The bounds are based on the image size.
         """
 
         in_x = self.pos[0] < cords[0] < self.pos[0] + self.image.width()
@@ -86,7 +86,7 @@ class VisualReversi:
     current_frame: tk.Frame
 
     def __init__(self, tk_root: tk.Tk) -> None:
-        """Initalizes a the VisualReversi window, setting the current state to StartScreen"""
+        """Initializes a the VisualReversi window, setting the current state to StartScreen"""
         tk_root.frame = StartScreen(self)
         self.tk_root = tk_root
         self.current_frame = tk_root.frame
@@ -147,7 +147,6 @@ class StartScreen(tk.Frame):
         for button in self._buttons:
             if button.in_bounds((event.x, event.y)):
                 if button.action == 'start':
-                    print('starting')
                     self.window.frame_swap(AISelectScreen(self.window))
                 else:
                     self.window.tk_root.destroy()
@@ -189,12 +188,13 @@ class AISelectScreen(tk.Frame):
         self._player1 = None
         self._player2 = None
 
-        # Create the background menu
+        # Sets font sizes and title text
         title_font = ('Times', '50', 'bold italic')
         subtitle_font = ('Times', '15', 'bold italic')
         self._text = tk.StringVar(self, value='Select Black')
         label = tk.Label(self, textvariable=self._text, font=title_font)
 
+        # Set the background image
         self._background_img = ImageTk.PhotoImage(Image.open("assets/unfocused_board.png"))
         canvas = tk.Canvas(self, width=self._background_img.width(),
                            height=self._background_img.height() - 100)
@@ -253,7 +253,7 @@ class AISelectScreen(tk.Frame):
                 elif button.action == 'Random Player':
                     self.set_player(self._player_chosen, RandomPlayer())
                 elif button.action == 'MCTS Player':
-                    self.set_player(self._player_chosen, MCTSTimerPlayer(8))
+                    self.set_player(self._player_chosen, MCTSTimeSavingPlayer(100, 8))
                 elif button.action == 'Human Player':
                     self.set_player(self._player_chosen, GUIPlayer())
                 elif button.action == 'Quit to Menu':
@@ -350,17 +350,13 @@ class BoardSelectScreen(tk.Frame):
                     new_screen.run_game(self._player1, self._player2)
 
 
-class GameScreen(tk.Frame):
-    """Represents the window state that shows the Reversi board
+class UIScreen(tk.Frame):
+    """An abstract window that uses user input in a reversi game
 
     Instance Attributes:
-        - _background_img: The background image of this window state
-        - _white_disk: A scaled image a white reversi disk
-        - _black_disk: A scaled image a black reversi disk
         - _previous_move_dis: A string representing the previous move, used in the progress bar
         - _board_pixel_size: The size of the reversi board, in pixels, excluding the border
         - _board_pos: The top left corner of the reversi board, excluding the border
-        - _canvas: A tkinter Canvas on which game elements are drawn
         - _click_move: The move made by the cursor, only relevant if a Human Player is playing
         - window: The window that is currently displaying this window state
         - _board_pixel_size: The size of an edge of the Reversi board, in pixels
@@ -371,12 +367,7 @@ class GameScreen(tk.Frame):
         Note: PhotoImage instances are stored as Instance Attributes because they are deleted
         otherwise, they may not be used outside of initialization.
     """
-
-    _background_img: ImageTk.PhotoImage
-    _white_disk: ImageTk.PhotoImage
-    _black_disk: ImageTk.PhotoImage
     _board_pos: tuple[int, int]
-    _canvas: tk.Canvas
     _click_move: str
     window: VisualReversi
     _board_pixel_size: int
@@ -385,16 +376,44 @@ class GameScreen(tk.Frame):
     game: ReversiGame
 
     def __init__(self, window: VisualReversi, size: int) -> None:
+        tk.Frame.__init__(self)
+        self.window = window
+        self._board_pos = (84, 120)
+        self._board_pixel_size = 637
+        self.previous_move_dis = ''
+
+        self._click_wanted = tk.BooleanVar()
+
+        # initialize game
+        self.game = ReversiGame(size)
+
+
+class GameScreen(UIScreen):
+    """Represents the window state that shows the Reversi board
+
+    Instance Attributes:
+        - _background_img: The background image of this window state
+        - _white_disk: A scaled image a white reversi disk
+        - _black_disk: A scaled image a black reversi disk
+        - _canvas: A tkinter Canvas on which game elements are drawn
+
+        Note: PhotoImage instances are stored as Instance Attributes because they are deleted
+        otherwise, they may not be used outside of initialization.
+    """
+
+    _background_img: ImageTk.PhotoImage
+    _white_disk: ImageTk.PhotoImage
+    _black_disk: ImageTk.PhotoImage
+    _canvas: tk.Canvas
+
+    def __init__(self, window: VisualReversi, size: int) -> None:
         """initialize gui
 
         Preconditions:
             - size == 8 or size == 6
         """
         # setting up
-        tk.Frame.__init__(self)
-        self.window = window
-        self._board_pos = (84, 120)
-        self._board_pixel_size = 637
+        super().__init__(window, size)
 
         # Open a scale disc images to fit the window
         w = Image.open('assets/chess/white8.png')
@@ -405,7 +424,6 @@ class GameScreen(tk.Frame):
 
         self._white_disk = ImageTk.PhotoImage(w)
         self._black_disk = ImageTk.PhotoImage(b)
-        self.previous_move_dis = ''
 
         if size == 8:
             self._background_img = ImageTk.PhotoImage(Image.open('assets/othello_board8X8.png'))
@@ -416,14 +434,10 @@ class GameScreen(tk.Frame):
                                  height=self._background_img.height())
         self._canvas.create_image((0, 0), anchor=tk.NW, image=self._background_img)
 
-        self._click_wanted = tk.BooleanVar()
         self._canvas.bind('<Button-1>', self.click)
         self._click_move = ''
 
         self._canvas.pack()
-
-        # initialize game
-        self.game = ReversiGame(size)
 
     def _update_progress_bar(self) -> None:
         """ Draws text onto the Canvas with information about the game"""
@@ -529,7 +543,6 @@ class GameScreen(tk.Frame):
             if 0 <= xcor <= self.game.get_size() and 0 <= ycor <= self.game.get_size():
                 pos = (ycor, xcor)
                 move = index_to_algebraic(pos)
-                print(move)
                 if move in self.game.get_valid_moves():
                     self.game.make_move(move)
                     self._click_move = move
@@ -570,5 +583,16 @@ class GameScreen(tk.Frame):
 def run_app() -> None:
     """Creates the tk root and runs the Reversi application"""
     root = tk.Tk()
-    app = VisualReversi(root)
+    VisualReversi(root)
     root.mainloop()
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['tkinter', 'time', 'PIL', 'mcts', 'reversi', 'minimax_tree', 'constants'],
+        # the names (strs) of imported modules
+        'allowed-io': ['run_game'],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 100,
+        'disable': ['E1136', 'R0913']
+    })

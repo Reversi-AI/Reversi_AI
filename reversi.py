@@ -71,7 +71,7 @@ class ReversiGame:
         self._size = size
         self._board = []
 
-        if size == 8 or size == 6:
+        if size in (8, 6):
             # create an empty size * size board
             for _ in range(size):
                 self._board.append([EMPTY] * size)
@@ -138,7 +138,7 @@ class ReversiGame:
             header = 'abcdefgh'
         else:
             header = 'abcdef'
-        print('   ' + '  '.join([c for c in header]))
+        print('   ' + '  '.join(list(header)))
 
         for i in range(len(self._board)):
             print(f'{i + 1}  ' + '  '.join(self._board[i]))
@@ -372,6 +372,7 @@ class Player:
 
     This class can be subclassed to implement different strategies for playing Reversi.
     """
+
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
 
@@ -391,6 +392,7 @@ class Player:
 
 class ConsoleUserPlayer(Player):
     """A human player using the console for interaction."""
+
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> Optional[str]:
         """Make a move given the current game.
 
@@ -412,21 +414,22 @@ class ConsoleUserPlayer(Player):
             if move == 'quit':
                 return 'quit'
             if move == 'view':
-                self._view_valid_moves(game)
+                view_valid_moves(game)
             print('Enter "quit" if you want to quit')
             print('Enter "view" if you want to view valid moves')
             move = input('Please enter your move')
         return move
 
-    def _view_valid_moves(self, game: ReversiGame) -> None:
-        """Output all valid moves for the current game state in the console
 
-        Preconditions:
-            - There is at least one valid move for the given game state
+def view_valid_moves(game: ReversiGame) -> None:
+    """Output all valid moves for the current game state in the console
 
-        :param game: the current game state
-        """
-        print(f'Valid moves are/is {str(game.get_valid_moves())[1: -1]}')
+    Preconditions:
+        - There is at least one valid move for the given game state
+
+    :param game: the current game state
+    """
+    print(f'Valid moves are/is {str(game.get_valid_moves())[1: -1]}')
 
 
 class RandomPlayer(Player):
@@ -452,9 +455,20 @@ class RandomPlayer(Player):
 
 class GUIPlayer(Player):
     """A human player interacting with a GUI"""
+
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Tells the game to use the mouse position on the board"""
         moves = game.get_valid_moves()
-        if moves == ['pass']:   # the only move is pass
+        if moves == ['pass']:  # the only move is pass
             return 'pass'
         return 'mouse_pos'
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['typing', 'copy', 'random', 'constants'],
+        'allowed-io': ['view_valid_moves', 'print_game', 'view_valid_moves', 'make_move'],
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })

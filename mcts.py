@@ -443,3 +443,14 @@ def load_tree(path: str) -> MCTSTree:
     with open(path, 'rb') as f:
         tree = pickle.load(f)
     return tree
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['copy', 'math', 'pickle', 'time', 'reversi', 'math', 'numpy',
+                          'constants'],
+        'allowed-io': ['export_tree', 'load_tree'],
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })

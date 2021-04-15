@@ -3,13 +3,15 @@ import time
 
 from mcts import MCTSTimeSavingPlayer
 from reversi import ReversiGame, Player, RandomPlayer, GUIPlayer
+from minimax_tree import MobilityTreePlayer, PositionalTreePlayer
 from constants import BLACK, WHITE, DEFAULT_FPS, index_to_algebraic
 from typing import Optional
 
 
-class ReversiGUI:
+class ReversiVisualizer:
     """
-    GUI class for the Reversi Game
+    GUI class that creates a simple, quick visualization of a Reversi Board, without other
+    UI elements, like menus, buttons, etc
     This class is responsible for starting a game board, handling game click events, and processing
     and updating current board.
     """
@@ -226,22 +228,22 @@ class GameStartScreen:
         """start game button clicked. starts the reversi gaame with the selected parameters"""
         if self.player is not None and self.boardsize is not None:
             self.frame.pack_forget()
-            self.page_1 = ReversiGUI(self.root, size=self.boardsize)
+            self.page_1 = ReversiVisualizer(self.root, size=self.boardsize)
             self.page_1.start_page()
             self.page_1.run_game(GUIPlayer(), self.player, self.boardsize)
         else:
             # print('please select a player and/or a board size')
             self.frame.pack_forget()
-            self.page_1 = ReversiGUI(self.root, size=8)
+            self.page_1 = ReversiVisualizer(self.root, size=8)
             self.page_1.start_page()
             self.page_1.run_game(GUIPlayer(), MCTSTimeSavingPlayer(100, 8), 8)
 
     def set_player(self, value) -> None:
         """drop down menu selecting AI player"""
         if value == 'Mobility Player':
-            self.player = MobilityPlayer(3)
+            self.player = MobilityTreePlayer(3)
         elif value == 'Positional Player':
-            self.player = PositionalPlayer(3)
+            self.player = PositionalTreePlayer(3)
         elif value == 'Random Player':
             self.player = RandomPlayer()
         else:

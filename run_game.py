@@ -11,28 +11,27 @@ Authors:
     - Alexander Nicholas Conway
 This file is Copyright (c) 2021.
 """
-import tkinter as tk
-from old_tk_gui import ReversiGUI
 import copy
 import time
 
+import tkinter as tk
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from simple_tk_gui import ReversiVisualizer
 from constants import BLACK, WHITE, DEFAULT_FPS
-from reversi import ReversiGame, Player, RandomPlayer, ConsoleUserPlayer, GUIPlayer
-from minimax_tree import GreedyTreePlayer, PositionalTreePlayer, MobilityTreePlayer
+from reversi import ReversiGame, Player
 
 
 def run_game_visual(player1: Player, player2: Player, size: int, fps: int = DEFAULT_FPS) -> None:
     """Run a reversi game using the given players and show a visual"""
     root = tk.Tk()
-    gui = ReversiGUI(root, size=size)
+    gui = ReversiVisualizer(root, size=size)
     gui.run_game(player1, player2, fps)
     root.mainloop()
 
 
-def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer=None,
+def run_games_ai(player1: Player, player2: Player, n: int, size: int,
                  show_stats: bool = False) -> None:
     """Run n games using the given Players.
     Preconditions:
@@ -45,7 +44,7 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer
         if i % 2:  # p1 black, p2 white
             black_copy = copy.deepcopy(player1)
             white_copy = copy.deepcopy(player2)
-            winner, _ = run_game(black_copy, white_copy, size, visualizer=visualizer)
+            winner, _ = run_game(black_copy, white_copy, size)
             print(f'Game {i}, P1 as {BLACK}, P2 as {WHITE}, ', end='')
 
             if winner == BLACK:
@@ -80,7 +79,7 @@ def run_games_ai(player1: Player, player2: Player, n: int, size: int, visualizer
 
 
 def run_game(black: Player, white: Player, size: int,
-             verbose: bool = False, visualizer=None) -> tuple[str, list[str]]:
+             verbose: bool = False) -> tuple[str, list[str]]:
     """Run a Reversi game between the two given players.
     Return the winner and list of moves made in the game.
     """
@@ -98,9 +97,6 @@ def run_game(black: Player, white: Player, size: int,
         t0 = time.time()  # record time before player make move
         previous_move = current_player.make_move(game, previous_move)
         t = time.time()  # record time after player make move
-
-        if visualizer is not None:
-            visualizer.draw_game_state(game, 500, 500)
 
         game.make_move(previous_move)
         move_sequence.append(previous_move)
@@ -155,15 +151,12 @@ def plot_game_statistics(results: list[str]) -> None:
 
 
 if __name__ == '__main__':
-    # test for run_games_ai
-    # run_games_ai(player1=MCTSTimerPlayer(time_limit=0.1), player2=RandomPlayer(), n=100, size=6, show_stats=True)
-    # test for run_game
-    # result = run_game(MobilityPlayer(4), PositionalPlayer(4), 8, True)
-    # test for run_games_visual
-    # run_games_visual(MobilityPlayer(4), PositionalPlayer(4), n=1, size=8)
-    # test for MCTSPlayer
-    # run_game(MCTSRoundPlayer(round=100), MCTSTimerPlayer(time_limit=3), 8, True)
-    # run_game(PositionalPlayer(4), MCTSRoundPlayer(100), 8, True)
-    # run_game_visual(PositionalPlayer(4), MCTSTimeSavingPlayer(500, 15), 8)
-    # run_game_visual(GUIPlayer(), MCTSTimeSavingPlayer(n=1000, time_limit=15, c=1), 8)
-    run_games_ai(MobilityTreePlayer(2), PositionalTreePlayer(2), 100, 6)
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['tkinter', 'time', 'old_tk_gui', 'copy', 'plotly', 'minimax_tree',
+                          'constants', 'simple_tk_gui', 'plotly.graph_objects', 'plotly.subplots',
+                          'reversi'],
+        'allowed-io': ['run_game', 'run_games_ai'],
+        'max-line-length': 100,
+        'disable': ['E1136', 'R0913']
+    })

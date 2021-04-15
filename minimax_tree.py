@@ -37,8 +37,8 @@ class MinimaxTree:
     _subtrees: list[MinimaxTree]
     game: ReversiGame
 
-    def __init__(self, move: str, max: bool, game: ReversiGame, eval: float = 0.0, alpha=-math.inf,
-                 beta=math.inf) -> None:
+    def __init__(self, move: str, maximize: bool, evaluate: float = 0.0, alpha: float = -math.inf,
+                 beta: float = math.inf) -> None:
         """Initialize a new game tree.
 
         Note that this initializer uses optional arguments, as illustrated below.
@@ -46,10 +46,9 @@ class MinimaxTree:
         self.move = move
         self.alpha = alpha
         self.beta = beta
-        self.max = max
+        self.max = maximize
         self._subtrees = []
-        self.eval = eval
-        self.best_move = ''
+        self.eval = evaluate
 
     def get_subtrees(self) -> list[MinimaxTree]:
         """Get the subtrees of the tree"""
@@ -59,7 +58,7 @@ class MinimaxTree:
         """Get the evaluation of the Tree"""
         return self.eval
 
-    def add_subtree(self, subtree: MinimaxTree):
+    def add_subtree(self, subtree: MinimaxTree) -> None:
         """Append a new tree to this trees subtrees and update it's evaluation"""
         self._subtrees.append(subtree)
         self._update_evaluation()
@@ -88,11 +87,16 @@ class MinimaxTree:
 
 
 class TreePlayer(Player):
-    """A Reversi Player that constructs a Tree to make moves"""
+    """A Reversi Player that constructs a Tree to make moves
 
-    def __init__(self, depth: int):
+    Instance Attributes:
+        _depth : How many moves forward the player should simulate
+    """
+
+    _depth: int
+
+    def __init__(self, depth: int) -> None:
         self._depth = depth
-        self.tree = None
 
     def make_move(self, game: ReversiGame, previous_move: Optional[str]) -> str:
         """Make a move given the current game.
@@ -119,7 +123,7 @@ class TreePlayer(Player):
                            beta: float = math.inf) -> MinimaxTree:
         """Construct a tree with a height of depth, prune branches based on the Tree's
         evaluate function"""
-        game_tree = MinimaxTree(move=previous_move, max=find_max, game=game, alpha=alpha, beta=beta)
+        game_tree = MinimaxTree(move=previous_move, maximize=find_max, alpha=alpha, beta=beta)
 
         if game.get_winner() is not None or depth == 0:
             game_tree.eval = self._value_eval(game, piece)
@@ -140,7 +144,7 @@ class TreePlayer(Player):
 
         return game_tree
 
-    def _value_eval(self, game: ReversiGame, piece: str):
+    def _value_eval(self, game: ReversiGame, piece: str) -> None:
         raise NotImplementedError
 
 
@@ -204,32 +208,39 @@ class PositionalTreePlayer(TreePlayer):
             else:
                 selected_board_weight = BOARD_WEIGHT_6
 
+        if board_filled < 0.80:
+            return positional_early(game, selected_board_weight, piece)
+        else:
             if piece == BLACK:
-                if board_filled < 0.80:  # early to middle game
-                    eval_so_far = 0
-                    board = game.get_game_board()
-                    for i in range(game.get_size() - 1):
-                        for j in range(game.get_size() - 1):
-                            if board[i][j] == BLACK:
-                                eval_so_far += selected_board_weight[i][j]
-                            elif board[i][j] == WHITE:
-                                eval_so_far -= selected_board_weight[i][j]
-                    return eval_so_far
-                else:  # end game
-                    return num_black / num_white
-            else:
-                if board_filled < 0.80:  # early to middle game
-                    eval_so_far = 0
-                    board = game.get_game_board()
-                    for i in range(game.get_size()):
-                        for j in range(game.get_size()):
-                            if board[i][j] == WHITE:
-                                eval_so_far += selected_board_weight[i][j]
-                            elif board[i][j] == BLACK:
-                                eval_so_far -= selected_board_weight[i][j]
-                    return eval_so_far
-                else:  # end game
-                    return num_white / num_white
+                return num_black / num_white
+
+            if piece == WHITE:
+                return num_white / num_black
+
+        return 0
+
+
+def positional_early(game: ReversiGame, selected_board_weight: list,
+                     player: str) -> Union[float, int]:
+    """Evaluates a board based on the positional advantage of black
+
+    Preconditions:
+        player in {BLACK, WHITE}
+    """
+    if player == BLACK:
+        opponent = WHITE
+    else:
+        opponent = BLACK
+
+    eval_so_far = 0
+    board = game.get_game_board()
+    for i in range(game.get_size() - 1):
+        for j in range(game.get_size() - 1):
+            if board[i][j] == player:
+                eval_so_far += selected_board_weight[i][j]
+            elif board[i][j] == opponent:
+                eval_so_far -= selected_board_weight[i][j]
+    return eval_so_far
 
 
 class MobilityTreePlayer(TreePlayer):
@@ -258,26 +269,43 @@ class MobilityTreePlayer(TreePlayer):
                 return -math.inf
         else:
             num_black, num_white = game.get_num_pieces()[BLACK], game.get_num_pieces()[WHITE]
-            corner_black, corner_white = self._check_corners(game)
+            corner_black, corner_white = check_corners(game)
             board_filled = (num_black + num_white) / (game.get_size() ** 2)
 
-            if board_filled < 0.80:  # early to middle game
-                return len(game.get_valid_moves())
-            else:  # end game
-                return num_white / num_black
+            if piece == BLACK:
+                if board_filled < 0.80:  # early to middle game
+                    return 10 * (corner_black - corner_white) + len(game.get_valid_moves())
+                else:  # end game
+                    return num_black / num_white
+            else:
+                if board_filled < 0.80:  # early to middle game
+                    return 10 * (corner_white - corner_black) + len(game.get_valid_moves())
+                else:  # end game
+                    return num_white / num_black
 
-    def _check_corners(self, game: ReversiGame) -> tuple[int, int]:
-        """Return a tuple representing the number of corner taken by each side
 
-        :param game: the game state to be checked
-        :return: (corner taken by black, corner taken by white)
-        """
-        board = game.get_game_board()
-        corner_black, corner_white = 0, 0
-        for i in [0, game.get_size() - 1]:
-            for j in [0, game.get_size() - 1]:
-                if board[i][j] == BLACK:
-                    corner_black += 1
-                elif board[i][j] == WHITE:
-                    corner_white += 1
-        return corner_black, corner_white
+def check_corners(game: ReversiGame) -> tuple[int, int]:
+    """Return a tuple representing the number of corner taken by each side
+
+    :param game: the game state to be checked
+    :return: (corner taken by black, corner taken by white)
+    """
+    board = game.get_game_board()
+    corner_black, corner_white = 0, 0
+    for i in [0, game.get_size() - 1]:
+        for j in [0, game.get_size() - 1]:
+            if board[i][j] == BLACK:
+                corner_black += 1
+            elif board[i][j] == WHITE:
+                corner_white += 1
+    return corner_black, corner_white
+
+
+if __name__ == '__main__':
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['typing', 'copy', 'random', 'constants', 'reversi', 'math'],
+        'allowed-io': ['view_valid_moves', 'print_game', 'view_valid_moves', 'make_move'],
+        'max-line-length': 100,
+        'disable': ['E1136']
+    })
