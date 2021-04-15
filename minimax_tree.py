@@ -262,7 +262,7 @@ class MobilityTreePlayer(TreePlayer):
             board_filled = (num_black + num_white) / (game.get_size() ** 2)
 
             if board_filled < 0.80:  # early to middle game
-                return len(game.get_valid_moves())
+                return 10 * (corner_black - corner_white) + len(game.get_valid_moves())
             else:  # end game
                 return num_white / num_black
 
