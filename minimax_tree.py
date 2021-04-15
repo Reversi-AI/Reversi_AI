@@ -49,6 +49,7 @@ class MinimaxTree:
         self.max = max
         self._subtrees = []
         self.eval = eval
+        self.best_move = ''
 
     def get_subtrees(self) -> list[MinimaxTree]:
         """Get the subtrees of the tree"""
@@ -67,7 +68,7 @@ class MinimaxTree:
         """Update the Tree's evaluation"""
         if self.max:
             self.eval = max(tree.evaluate() for tree in self._subtrees)
-            self.alpha = max(self.eval, self.alpha)
+            self.alpha = max(self.alpha, self.eval)
         else:
             self.eval = min(tree.evaluate() for tree in self._subtrees)
             self.beta = min(self.beta, self.eval)
@@ -77,7 +78,7 @@ class MinimaxTree:
         best_so_far = self._subtrees[0]
         for tree in self._subtrees:
             if tree.evaluate() > best_so_far.evaluate():
-                best_lst = tree
+                best_so_far = tree
 
         return best_so_far.move
 
@@ -119,9 +120,12 @@ class TreePlayer(Player):
         if game.get_winner() is not None or depth == 0:
             game_tree.eval = self._value_eval(game, piece)
         else:
-            for move in game.get_valid_moves():
+            valid_moves = game.get_valid_moves()
+            random.shuffle(valid_moves)
+            for move in valid_moves:
 
-                subtree = self.build_minimax_tree(game.simulate_move(move), piece, depth - 1,
+                game_after_move = game.simulate_move(move)
+                subtree = self.build_minimax_tree(game_after_move, piece, depth - 1,
                                                   not find_max, move, alpha=game_tree.alpha,
                                                   beta=game_tree.beta)
 
