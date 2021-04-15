@@ -73,9 +73,9 @@ def run_reversi_game(dpi: tuple = DEFAULT_DPI) -> None:
                 player = RandomPlayer()
                 ai_num = _choose_ai_menu(game_surface)
                 if ai_num == 1:
-                    player = MobilityPlayer(3)
+                    player = MobilityTreePlayer(3)
                 elif ai_num == 2:
-                    player = PositionalPlayer(3)
+                    player = PositionalTreePlayer(3)
                 elif ai_num == 3:
                     player = RandomPlayer()
                 elif ai_num == 4:
@@ -227,9 +227,9 @@ def _choose_ai1(game_surface: pygame.surface) -> tuple:
         if ai_1 == 0:
             return ()
         elif ai_1 == 1:
-            player1 = MobilityPlayer(3)
+            player1 = MobilityTreePlayer(3)
         elif ai_1 == 2:
-            player1 = PositionalPlayer(3)
+            player1 = PositionalTreePlayer(3)
         elif ai_1 == 3:
             player1 = RandomPlayer()
         elif ai_1 == 4:
@@ -240,16 +240,16 @@ def _choose_ai1(game_surface: pygame.surface) -> tuple:
         return (player1, player2)
 
 
-def _choose_ai2(game_surface: pygame.surface) -> Optional[Union[MobilityPlayer, PositionalPlayer, RandomPlayer,
+def _choose_ai2(game_surface: pygame.surface) -> Optional[Union[MobilityTreePlayer, PositionalTreePlayer, RandomPlayer,
                                                           ReversiGame, MCTSTimeSavingPlayer]]:
     while True:
         ai_2 = _choose_ai_1and2(2, game_surface)
         if ai_2 == 0:
             return None
         elif ai_2 == 1:
-            return MobilityPlayer(3)
+            return MobilityTreePlayer(3)
         elif ai_2 == 2:
-            return PositionalPlayer(3)
+            return PositionalTreePlayer(3)
         elif ai_2 == 3:
             return RandomPlayer()
         elif ai_2 == 4:
@@ -278,7 +278,7 @@ def _choose_board_menu(game_surface: pygame.Surface) -> int:
 
 
 def _run_ai_game(game_surface: pygame.Surface, size: int,
-                 ai_player: Union[MobilityPlayer, PositionalPlayer, RandomPlayer,
+                 ai_player: Union[MobilityTreePlayer, PositionalTreePlayer, RandomPlayer,
                                   ReversiGame, MCTSTimeSavingPlayer],
                  user_side: str = BLACK) -> None:
     if size == 8:
@@ -370,9 +370,9 @@ def _run_ai_game(game_surface: pygame.Surface, size: int,
 
 
 def _run_ai_simulation(game_surface: pygame.Surface, size: int,
-                       player1: Union[MobilityPlayer, PositionalPlayer, RandomPlayer,
+                       player1: Union[MobilityTreePlayer, PositionalTreePlayer, RandomPlayer,
                                       ReversiGame, MCTSTimeSavingPlayer],
-                       player2: Union[MobilityPlayer, PositionalPlayer, RandomPlayer,
+                       player2: Union[MobilityTreePlayer, PositionalTreePlayer, RandomPlayer,
                                       ReversiGame, MCTSTimeSavingPlayer]) -> None:
     if size == 8:
         background = pygame.image.load('assets/gameboard8.png')
