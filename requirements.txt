@@ -4,7 +4,7 @@
 python-ta
 
 # Graphics and data visualization
-ploty
+plotly
 
 # GUI
 pygame
