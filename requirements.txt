@@ -6,6 +6,9 @@ python-ta
 # Graphics and data visualization
 plotly
 
+# AI implementation
+numpy
+
 # GUI
 pygame
 Pillow
